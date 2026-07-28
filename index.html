@@ -925,6 +925,14 @@
             const ur = uraian.toLowerCase();
             const kd = kode.toUpperCase();
 
+            // Aturan Khusus berdasarkan Uraian/Keterangan
+            if (ur.includes("tabungan siswa")) {
+              return "213010108 - Dana Titipan Tabungan Santri";
+            }
+            if (ur.includes("biaya kegiatan")) {
+              return "423010103 - Penerimaan Kegiatan-Program";
+            }
+
             if (kd) {
               const m = this.rules.find(
                 (r) => r.kode && r.kode.toUpperCase() === kd,
@@ -969,6 +977,8 @@
           processDanaTitip(ur) {
             if (ur.includes("pegawai"))
               return "213010103 - Dana Titipan Tabungan Pegawai";
+            if (ur.includes("tabungan siswa"))
+              return "213010108 - Dana Titipan Tabungan Santri";
             if (
               ur.includes("santri") ||
               ur.includes("siswa") ||
@@ -1052,9 +1062,6 @@
 
             // 2. Format Keterangan
             let keterangan = item.uraian || "";
-            if (item.nama && item.nama !== "-") {
-              keterangan += " - " + item.nama;
-            }
 
             // 3. Clean Bank Name (removes "Bank " / "bank ")
             let bankName = item.kasBank || "";
