@@ -1,1155 +1,1010 @@
 <!doctype html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard Jurnal Ke COA - Alpine.js Edition</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- Alpine.js CDN -->
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
-    ></script>
-    <!-- Google Fonts -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      [x-cloak] {
-        display: none !important;
-      }
-      body {
-        font-family: "Inter", sans-serif;
-      }
-    </style>
-  </head>
-  <body
-    class="bg-slate-50 text-slate-800 min-h-screen flex flex-col"
-    x-data="appData()"
-    x-init="initApp()"
-  >
-    <!-- Loading State Overlay -->
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Jurnal Ke COA - Alpine.js Edition</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Alpine.js CDN -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    [x-cloak] {
+      display: none !important;
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col" x-data="appData()" x-init="initApp()">
+  <!-- Loading State Overlay -->
+  <div x-show="isLoading"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white"
+    x-cloak>
     <div
-      x-show="isLoading"
-      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white"
-      x-cloak
-    >
-      <div
-        class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 text-slate-800 flex flex-col items-center space-y-4 max-w-xs text-center"
-      >
+      class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 text-slate-800 flex flex-col items-center space-y-4 max-w-xs text-center">
+      <div class="w-12 h-12 border-4 border-emerald-200 border-t-emerald-700 rounded-full animate-spin"></div>
+      <div>
+        <p class="font-bold text-sm text-slate-800">
+          Memproses File Excel...
+        </p>
+        <p class="text-xs text-slate-500 mt-1">
+          Sedang menormalisasi Kas/Bank, COA, dan nominal.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Application -->
+  <header class="bg-emerald-900 text-white shadow-lg border-b border-emerald-950 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4">
+      <!-- Emblem Logo -->
+      <div class="flex items-center space-x-3">
         <div
-          class="w-12 h-12 border-4 border-emerald-200 border-t-emerald-700 rounded-full animate-spin"
-        ></div>
+          class="w-11 h-11 bg-emerald-950 rounded-xl border border-emerald-600 flex items-center justify-center p-1 shadow-md relative overflow-hidden">
+          <div class="absolute inset-0 bg-red-950/40 flex items-center justify-center">
+            <svg class="w-9 h-9 text-emerald-500 opacity-30 rotate-45" fill="currentColor" viewBox="0 0 24 24">
+              <rect x="4" y="4" width="16" height="16" rx="2" />
+            </svg>
+          </div>
+          <svg class="w-7 h-7 text-emerald-300 z-10" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12 2.25L3.75 6.75V17.25L12 21.75L20.25 17.25V6.75L12 2.25ZM12 4.25L18 7.5V15.5L12 18.75L6 15.5V7.5L12 4.25ZM11 8H7V9.5H11V8ZM17 8H13V9.5H17V8ZM11 11H7V12.5H11V11ZM17 11H13V12.5H17V11Z" />
+          </svg>
+        </div>
         <div>
-          <p class="font-bold text-sm text-slate-800">
-            Memproses File Excel...
-          </p>
-          <p class="text-xs text-slate-500 mt-1">
-            Sedang menormalisasi Kas/Bank, COA, dan nominal.
+          <h1 class="text-base font-bold tracking-tight leading-tight">
+            Dashboard Jurnal Keuangan
+          </h1>
+          <p class="text-xs text-emerald-200">
+            Mahad Ibnu Taimiyah Bogor &bull; Alpine.js App
           </p>
         </div>
       </div>
-    </div>
 
-    <!-- Header Application -->
-    <header
-      class="bg-emerald-900 text-white shadow-lg border-b border-emerald-950 sticky top-0 z-40"
-    >
-      <div
-        class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4"
-      >
-        <!-- Emblem Logo -->
-        <div class="flex items-center space-x-3">
+      <!-- Header Buttons -->
+      <div class="flex items-center space-x-3">
+        <button @click="showModal = true"
+          class="text-xs bg-emerald-800 hover:bg-emerald-700 text-emerald-100 border border-emerald-600 px-3.5 py-2 rounded-xl font-medium transition flex items-center space-x-1.5 shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+            </path>
+          </svg>
+          <span>Setting Pos Rules</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+    <!-- Upload View -->
+    <div x-show="!isUploaded" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4">
+      <div @click="$refs.fileInput.click()" @dragover.prevent="dragover = true" @dragleave.prevent="dragover = false"
+        @drop.prevent="handleDrop($event)"
+        :class="dragover ? 'border-emerald-600 bg-emerald-50/40' : 'border-slate-300 bg-slate-50/50'"
+        class="border-2 border-dashed transition-all duration-200 rounded-2xl p-12 cursor-pointer hover:bg-emerald-50/20 group">
+        <input type="file" x-ref="fileInput" @change="handleFileSelect($event)" accept=".xlsx, .xls" class="hidden" />
+        <div class="flex flex-col items-center space-y-3">
           <div
-            class="w-11 h-11 bg-emerald-950 rounded-xl border border-emerald-600 flex items-center justify-center p-1 shadow-md relative overflow-hidden"
-          >
-            <div
-              class="absolute inset-0 bg-red-950/40 flex items-center justify-center"
-            >
-              <svg
-                class="w-9 h-9 text-emerald-500 opacity-30 rotate-45"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <rect x="4" y="4" width="16" height="16" rx="2" />
-              </svg>
-            </div>
-            <svg
-              class="w-7 h-7 text-emerald-300 z-10"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M12 2.25L3.75 6.75V17.25L12 21.75L20.25 17.25V6.75L12 2.25ZM12 4.25L18 7.5V15.5L12 18.75L6 15.5V7.5L12 4.25ZM11 8H7V9.5H11V8ZM17 8H13V9.5H17V8ZM11 11H7V12.5H11V11ZM17 11H13V12.5H17V11Z"
-              />
+            class="p-4 bg-emerald-100 group-hover:bg-emerald-600 text-emerald-800 group-hover:text-white rounded-full transition-colors duration-200">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
             </svg>
           </div>
           <div>
-            <h1 class="text-base font-bold tracking-tight leading-tight">
-              Dashboard Jurnal Keuangan
-            </h1>
-            <p class="text-xs text-emerald-200">
-              Mahad Ibnu Taimiyah Bogor &bull; Alpine.js App
+            <p class="text-base font-bold text-slate-700 group-hover:text-emerald-900">
+              Upload File Excel Jurnal
+            </p>
+            <p class="text-xs text-slate-500 mt-1">
+              Membaca Sheet 'Jurnal' &bull; Tampilan Interaktif Dashboard
             </p>
           </div>
-        </div>
-
-        <!-- Header Buttons -->
-        <div class="flex items-center space-x-3">
-          <button
-            @click="showModal = true"
-            class="text-xs bg-emerald-800 hover:bg-emerald-700 text-emerald-100 border border-emerald-600 px-3.5 py-2 rounded-xl font-medium transition flex items-center space-x-1.5 shadow-sm"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              ></path>
-            </svg>
-            <span>Setting Pos Rules</span>
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
-      <!-- Upload View -->
-      <div
-        x-show="!isUploaded"
-        class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4"
-      >
-        <div
-          @click="$refs.fileInput.click()"
-          @dragover.prevent="dragover = true"
-          @dragleave.prevent="dragover = false"
-          @drop.prevent="handleDrop($event)"
-          :class="dragover ? 'border-emerald-600 bg-emerald-50/40' : 'border-slate-300 bg-slate-50/50'"
-          class="border-2 border-dashed transition-all duration-200 rounded-2xl p-12 cursor-pointer hover:bg-emerald-50/20 group"
-        >
-          <input
-            type="file"
-            x-ref="fileInput"
-            @change="handleFileSelect($event)"
-            accept=".xlsx, .xls"
-            class="hidden"
-          />
-          <div class="flex flex-col items-center space-y-3">
-            <div
-              class="p-4 bg-emerald-100 group-hover:bg-emerald-600 text-emerald-800 group-hover:text-white rounded-full transition-colors duration-200"
-            >
-              <svg
-                class="w-10 h-10"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                ></path>
-              </svg>
-            </div>
-            <div>
-              <p
-                class="text-base font-bold text-slate-700 group-hover:text-emerald-900"
-              >
-                Upload File Excel Jurnal
-              </p>
-              <p class="text-xs text-slate-500 mt-1">
-                Membaca Sheet 'Jurnal' &bull; Tampilan Interaktif Dashboard
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dashboard Interaktif -->
-      <div x-show="isUploaded" class="space-y-6" x-cloak>
-        <!-- Toolbar & Filter -->
-        <div
-          class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4"
-        >
-          <div class="flex flex-wrap items-center gap-3">
-            <!-- Select Filter Tanggal -->
-            <div class="flex items-center space-x-2">
-              <label
-                for="date-select"
-                class="text-xs font-bold text-slate-700 flex items-center space-x-1"
-              >
-                <svg
-                  class="w-4 h-4 text-emerald-700"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  ></path>
-                </svg>
-                <span>Tanggal:</span>
-              </label>
-              <select
-                id="date-select"
-                x-model="selectedDate"
-                class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-semibold bg-slate-50 focus:bg-white focus:outline-emerald-600 text-slate-800 shadow-sm cursor-pointer min-w-[150px]"
-              >
-                <option value="ALL">-- Semua Tanggal --</option>
-                <template x-for="d in availableDates" :key="d">
-                  <option :value="d" x-text="d"></option>
-                </template>
-              </select>
-            </div>
-
-            <!-- Select Filter Kas/Bank -->
-            <div class="flex items-center space-x-2">
-              <label
-                for="kasbank-select"
-                class="text-xs font-bold text-slate-700 flex items-center space-x-1"
-              >
-                <svg
-                  class="w-4 h-4 text-emerald-700"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                  ></path>
-                </svg>
-                <span>Kas/Bank:</span>
-              </label>
-              <select
-                id="kasbank-select"
-                x-model="selectedKasBank"
-                class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-semibold bg-slate-50 focus:bg-white focus:outline-emerald-600 text-slate-800 shadow-sm cursor-pointer min-w-[160px]"
-              >
-                <option value="ALL">-- Semua Kas/Bank --</option>
-                <template x-for="kb in availableKasBanks" :key="kb">
-                  <option :value="kb" x-text="kb"></option>
-                </template>
-              </select>
-            </div>
-          </div>
-
-          <!-- Search Bar & Reset -->
-          <div class="flex items-center space-x-3">
-            <input
-              type="text"
-              x-model="searchQuery"
-              placeholder="Cari uraian, nama, pos..."
-              class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs w-56 focus:outline-emerald-600"
-            />
-            <button
-              @click="resetFile()"
-              class="text-xs text-rose-600 hover:text-rose-800 border border-rose-200 hover:bg-rose-50 px-3 py-1.5 rounded-xl font-medium transition"
-            >
-              Ganti File
-            </button>
-          </div>
-        </div>
-
-        <!-- Tabel Transaksi Utama -->
-        <div
-          class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
-        >
-          <div
-            class="bg-slate-100 px-5 py-3 border-b border-slate-200 flex justify-between items-center text-xs font-bold text-slate-700"
-          >
-            <span x-text="getTableTitle()"></span>
-            <div class="flex items-center space-x-3">
-              <span
-                class="text-xs text-slate-500 font-medium"
-                x-text="'File: ' + uploadedFileName"
-              ></span>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-xs">
-              <thead class="bg-slate-50 text-slate-600 font-semibold">
-                <tr>
-                  <!-- Header Checkbox All -->
-                  <th class="px-3 py-2.5 text-center w-10">
-                    <input
-                      type="checkbox"
-                      @change="toggleSelectAll($event)"
-                      class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
-                      title="Tandai Semua"
-                    />
-                  </th>
-                  <th class="px-3.5 py-2.5 text-left">TANGGAL</th>
-                  <th
-                    class="px-3.5 py-2.5 text-left font-bold text-emerald-900 bg-emerald-50/50"
-                  >
-                    KAS / BANK
-                  </th>
-                  <th class="px-3.5 py-2.5 text-left">KODE</th>
-                  <th class="px-3.5 py-2.5 text-left text-rose-600">
-                    POS LAMA
-                  </th>
-                  <th
-                    class="px-3.5 py-2.5 text-left text-emerald-800 bg-emerald-50/80"
-                  >
-                    POS BARU (COA RESMI)
-                  </th>
-                  <th class="px-3.5 py-2.5 text-left">URAIAN</th>
-                  <th class="px-3.5 py-2.5 text-left">NAMA</th>
-                  <th class="px-3.5 py-2.5 text-right font-bold text-slate-800">
-                    DEBET
-                  </th>
-                  <th class="px-3.5 py-2.5 text-right font-bold text-slate-800">
-                    KREDIT
-                  </th>
-                  <th class="px-3.5 py-2.5 text-center">AKSI</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-slate-200">
-                <template x-for="item in filteredData" :key="item.id">
-                  <tr
-                    :class="item.selected ? 'bg-amber-100/80 hover:bg-amber-100 transition-colors' : 'hover:bg-slate-50 transition-colors'"
-                  >
-                    <!-- Checkbox Penanda Baris (Kuning) -->
-                    <td class="px-3 py-2.5 text-center">
-                      <input
-                        type="checkbox"
-                        x-model="item.selected"
-                        class="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
-                      />
-                    </td>
-
-                    <td
-                      class="px-3.5 py-2.5 whitespace-nowrap text-slate-500 font-mono"
-                      x-text="item.tanggal || '-'"
-                    ></td>
-                    <td
-                      class="px-3.5 py-2.5 font-bold text-emerald-900 bg-emerald-50/30 whitespace-nowrap"
-                      x-text="item.kasBank || '-'"
-                    ></td>
-                    <td
-                      class="px-3.5 py-2.5 font-mono text-slate-400"
-                      x-text="item.kodeLama || ''"
-                    ></td>
-                    <td
-                      class="px-3.5 py-2.5 text-slate-600"
-                      x-text="item.posLama || '-'"
-                    ></td>
-
-                    <!-- Pos Baru (Dikosongkan jika Uang Muka Minus / Penerimaan Lain-lain) -->
-                    <td class="px-3.5 py-2.5">
-                      <template x-if="item.posBaru">
-                        <span
-                          class="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded"
-                          x-text="item.posBaru"
-                        ></span>
-                      </template>
-                      <template x-if="!item.posBaru">
-                        <span class="text-slate-300 italic">(Dikosongkan)</span>
-                      </template>
-                    </td>
-
-                    <td
-                      class="px-3.5 py-2.5 text-slate-600 max-w-xs"
-                      :title="item.uraian"
-                      x-text="item.uraian || '-'"
-                    ></td>
-                    <td
-                      class="px-3.5 py-2.5 text-slate-500"
-                      x-text="item.nama || '-'"
-                    ></td>
-
-                    <td
-                      class="px-3.5 py-2.5 text-right font-mono font-medium"
-                      :class="item.debet < 0 ? 'text-rose-600' : 'text-slate-800'"
-                      x-text="formatRupiah(item.debet)"
-                    ></td>
-                    <td
-                      class="px-3.5 py-2.5 text-right font-mono font-medium"
-                      :class="item.kredit < 0 ? 'text-rose-600' : 'text-slate-800'"
-                      x-text="formatRupiah(item.kredit)"
-                    ></td>
-
-                    <!-- Tombol Action (HILANG JIKA DICEKLIS OR UNMATCHED) -->
-                    <td class="px-3.5 py-2.5 text-center">
-                      <template
-                        x-if="item.hasMatch && item.posBaru && !item.selected"
-                      >
-                        <button
-                          @click="handleRowAction(item)"
-                          class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-[11px] rounded-lg shadow-sm transition"
-                        >
-                          Aksi
-                        </button>
-                      </template>
-                      <template
-                        x-if="!item.hasMatch || !item.posBaru || item.selected"
-                      >
-                        <span class="text-slate-300">-</span>
-                      </template>
-                    </td>
-                  </tr>
-                </template>
-
-                <template x-if="filteredData.length === 0">
-                  <tr>
-                    <td colspan="11" class="p-8 text-center text-slate-400">
-                      Tidak ada data transaksi yang cocok dengan filter.
-                    </td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <!-- Modal Rules Viewer -->
-    <div
-      x-show="showModal"
-      class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      x-cloak
-    >
-      <div
-        @click.away="showModal = false"
-        class="bg-white rounded-2xl max-w-3xl w-full max-h-[80vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden"
-      >
-        <div
-          class="bg-emerald-900 text-white p-4 flex justify-between items-center"
-        >
-          <h3 class="font-bold text-sm">Daftar Aturan Mapping Pos CONSTANT</h3>
-          <button
-            @click="showModal = false"
-            class="text-emerald-200 hover:text-white font-bold text-lg"
-          >
-            &times;
-          </button>
-        </div>
-        <div class="p-4 overflow-y-auto text-xs space-y-3">
-          <div class="border rounded-xl overflow-hidden">
-            <table class="min-w-full divide-y divide-slate-200">
-              <thead class="bg-slate-100 font-semibold text-slate-700">
-                <tr>
-                  <th class="p-2.5 text-left">Kode</th>
-                  <th class="p-2.5 text-left">Pos Lama</th>
-                  <th class="p-2.5 text-left text-emerald-800">
-                    Target COA Resmi
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 bg-white">
-                <template x-for="r in rules" :key="r.kode + r.pos_lama">
-                  <tr>
-                    <td
-                      class="p-2.5 font-mono font-bold text-slate-800 bg-slate-50"
-                      x-text="r.kode || '-'"
-                    ></td>
-                    <td class="p-2.5 text-slate-700" x-text="r.pos_lama"></td>
-                    <td
-                      class="p-2.5 font-bold text-emerald-800"
-                      x-text="r.coa_target || '(Dikosongkan)'"
-                    ></td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="p-3 bg-slate-50 border-t text-right">
-          <button
-            @click="showModal = false"
-            class="bg-slate-800 text-white text-xs px-4 py-2 rounded-xl font-medium"
-          >
-            Tutup
-          </button>
         </div>
       </div>
     </div>
 
-    <footer
-      class="bg-slate-100 border-t border-slate-200 py-3 text-center text-xs text-slate-500 mt-auto"
-    >
-      Mahad Ibnu Taimiyah Bogor &copy; 2026 - Reactive Alpine.js Application
-    </footer>
+    <!-- Dashboard Interaktif -->
+    <div x-show="isUploaded" class="space-y-6" x-cloak>
+      <!-- Toolbar & Filter -->
+      <div
+        class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Select Filter Tanggal -->
+          <div class="flex items-center space-x-2">
+            <label for="date-select" class="text-xs font-bold text-slate-700 flex items-center space-x-1">
+              <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <span>Tanggal:</span>
+            </label>
+            <select id="date-select" x-model="selectedDate"
+              class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-semibold bg-slate-50 focus:bg-white focus:outline-emerald-600 text-slate-800 shadow-sm cursor-pointer min-w-[150px]">
+              <option value="ALL">-- Semua Tanggal --</option>
+              <template x-for="d in availableDates" :key="d">
+                <option :value="d" x-text="d"></option>
+              </template>
+            </select>
+          </div>
 
-    <!-- Script Component -->
-    <script>
-      const DEFAULT_CONSTANTS = [
-        {
-          kode: "A11",
-          pos_lama: "Penerimaan Dari Yys Lajnah",
-          coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
-        },
-        {
-          kode: "A12",
-          pos_lama: "Penerimaan SPP Santri Non Yatim",
-          coa_target: "421010101 - Pendapatan IWS (Infaq Wali-Santri/Murid)",
-        },
-        {
-          kode: "A13",
-          pos_lama: "Sisa Dari Anggaran",
-          coa_target: "423010105 - Pendapatan Lain",
-        },
-        {
-          kode: "A14",
-          pos_lama: "Penerimaan Bos",
-          coa_target: "422010101 - Pendapatan Dana BOS",
-        },
-        {
-          kode: "A15",
-          pos_lama: "Penerimaan MiniMarket/Usaha Pesantren",
-          coa_target: "213010199 - Utang Jangka Pendek Lainnya",
-        },
-        {
-          kode: "A16",
-          pos_lama: "Penerimaan Bagi Hasil Bank",
-          coa_target: "611010104 - Pendapatan Administrasi Bank",
-        },
-        {
-          kode: "A17",
-          pos_lama: "Kafalah Yatim",
-          coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
-        },
-        {
-          kode: "A18",
-          pos_lama: "Ayat Silang (transfer antar kas/bank)",
-          coa_target: "AYAT_SILANG",
-        },
-        {
-          kode: "A19",
-          pos_lama: "Zakat, Infaq, Shodaqoh",
-          coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
-        },
-        {
-          kode: "A21",
-          pos_lama: "Sumbangan",
-          coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
-        },
-        {
-          kode: "A22",
-          pos_lama: "Dana Amanah Pembangunan",
-          coa_target: "421010103 - Pendapatan Pembangunan-DU PSB",
-        },
-        {
-          kode: "A23",
-          pos_lama: "Uang Tahunan",
-          coa_target: "DYNAMIC_UANG_TAHUNAN",
-        },
-        {
-          kode: "A24",
-          pos_lama: "Uang Ujian",
-          coa_target: "421010104 - Pendapatan Tahunan-DU PSB",
-        },
-        {
-          kode: "A26",
-          pos_lama: "Dana Titip (Uang Saku Santri, Donasi, transfer dll)",
-          coa_target: "DYNAMIC_DANA_TITIP",
-        },
-        {
-          kode: "A27",
-          pos_lama: "Piutang Guru & Karyawan",
-          coa_target: "112030102 - Piutang Pegawai",
+          <!-- Select Filter Kas/Bank -->
+          <div class="flex items-center space-x-2">
+            <label for="kasbank-select" class="text-xs font-bold text-slate-700 flex items-center space-x-1">
+              <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+              </svg>
+              <span>Kas/Bank:</span>
+            </label>
+            <select id="kasbank-select" x-model="selectedKasBank"
+              class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-semibold bg-slate-50 focus:bg-white focus:outline-emerald-600 text-slate-800 shadow-sm cursor-pointer min-w-[160px]">
+              <option value="ALL">-- Semua Kas/Bank --</option>
+              <template x-for="kb in availableKasBanks" :key="kb">
+                <option :value="kb" x-text="kb"></option>
+              </template>
+            </select>
+          </div>
+        </div>
+
+        <!-- Search Bar & Reset -->
+        <div class="flex items-center space-x-3">
+          <input type="text" x-model="searchQuery" placeholder="Cari uraian, nama, pos..."
+            class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs w-56 focus:outline-emerald-600" />
+          <button @click="resetFile()"
+            class="text-xs text-rose-600 hover:text-rose-800 border border-rose-200 hover:bg-rose-50 px-3 py-1.5 rounded-xl font-medium transition">
+            Ganti File
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabel Transaksi Utama -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div
+          class="bg-slate-100 px-5 py-3 border-b border-slate-200 flex justify-between items-center text-xs font-bold text-slate-700">
+          <span x-text="getTableTitle()"></span>
+          <div class="flex items-center space-x-3">
+            <span class="text-xs text-slate-500 font-medium" x-text="'File: ' + uploadedFileName"></span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 text-xs">
+            <thead class="bg-slate-50 text-slate-600 font-semibold">
+              <tr>
+                <!-- Header Checkbox All -->
+                <th class="px-3 py-2.5 text-center w-10">
+                  <input type="checkbox" @change="toggleSelectAll($event)"
+                    class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                    title="Tandai Semua" />
+                </th>
+                <th class="px-3.5 py-2.5 text-left">TANGGAL</th>
+                <th class="px-3.5 py-2.5 text-left font-bold text-emerald-900 bg-emerald-50/50">
+                  KAS / BANK
+                </th>
+                <th class="px-3.5 py-2.5 text-left">KODE</th>
+                <th class="px-3.5 py-2.5 text-left text-rose-600">
+                  POS LAMA
+                </th>
+                <th class="px-3.5 py-2.5 text-left text-emerald-800 bg-emerald-50/80">
+                  POS BARU (COA RESMI)
+                </th>
+                <th class="px-3.5 py-2.5 text-left">URAIAN</th>
+                <th class="px-3.5 py-2.5 text-left">NAMA</th>
+                <th class="px-3.5 py-2.5 text-right font-bold text-slate-800">
+                  DEBET
+                </th>
+                <th class="px-3.5 py-2.5 text-right font-bold text-slate-800">
+                  KREDIT
+                </th>
+                <th class="px-3.5 py-2.5 text-center">AKSI</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-slate-200">
+              <template x-for="item in filteredData" :key="item.id">
+                <tr
+                  :class="item.selected ? 'bg-amber-100/80 hover:bg-amber-100 transition-colors' : 'hover:bg-slate-50 transition-colors'">
+                  <!-- Checkbox Penanda Baris (Kuning) -->
+                  <td class="px-3 py-2.5 text-center">
+                    <input type="checkbox" x-model="item.selected"
+                      class="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer" />
+                  </td>
+
+                  <td class="px-3.5 py-2.5 whitespace-nowrap text-slate-500 font-mono" x-text="item.tanggal || '-'">
+                  </td>
+                  <td class="px-3.5 py-2.5 font-bold text-emerald-900 bg-emerald-50/30 whitespace-nowrap"
+                    x-text="item.kasBank || '-'"></td>
+                  <td class="px-3.5 py-2.5 font-mono text-slate-400" x-text="item.kodeLama || ''"></td>
+                  <td class="px-3.5 py-2.5 text-slate-600" x-text="item.posLama || '-'"></td>
+
+                  <!-- Pos Baru (Dikosongkan jika Uang Muka Minus / Penerimaan Lain-lain) -->
+                  <td class="px-3.5 py-2.5">
+                    <template x-if="item.posBaru">
+                      <span class="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded"
+                        x-text="item.posBaru"></span>
+                    </template>
+                    <template x-if="!item.posBaru">
+                      <span class="text-slate-300 italic">(Dikosongkan)</span>
+                    </template>
+                  </td>
+
+                  <td class="px-3.5 py-2.5 text-slate-600 max-w-xs" :title="item.uraian" x-text="item.uraian || '-'">
+                  </td>
+                  <td class="px-3.5 py-2.5 text-slate-500" x-text="item.nama || '-'"></td>
+
+                  <td class="px-3.5 py-2.5 text-right font-mono font-medium"
+                    :class="item.debet < 0 ? 'text-rose-600' : 'text-slate-800'" x-text="formatRupiah(item.debet)"></td>
+                  <td class="px-3.5 py-2.5 text-right font-mono font-medium"
+                    :class="item.kredit < 0 ? 'text-rose-600' : 'text-slate-800'" x-text="formatRupiah(item.kredit)">
+                  </td>
+
+                  <!-- Tombol Action (HILANG JIKA DICEKLIS OR UNMATCHED) -->
+                  <td class="px-3.5 py-2.5 text-center">
+                    <template x-if="item.hasMatch && item.posBaru && !item.selected">
+                      <button @click="handleRowAction(item)"
+                        class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-[11px] rounded-lg shadow-sm transition">
+                        Aksi
+                      </button>
+                    </template>
+                    <template x-if="!item.hasMatch || !item.posBaru || item.selected">
+                      <span class="text-slate-300">-</span>
+                    </template>
+                  </td>
+                </tr>
+              </template>
+
+              <template x-if="filteredData.length === 0">
+                <tr>
+                  <td colspan="11" class="p-8 text-center text-slate-400">
+                    Tidak ada data transaksi yang cocok dengan filter.
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Rules Viewer -->
+  <div x-show="showModal"
+    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak>
+    <div @click.away="showModal = false"
+      class="bg-white rounded-2xl max-w-3xl w-full max-h-[80vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-emerald-900 text-white p-4 flex justify-between items-center">
+        <h3 class="font-bold text-sm">Daftar Aturan Mapping Pos CONSTANT</h3>
+        <button @click="showModal = false" class="text-emerald-200 hover:text-white font-bold text-lg">
+          &times;
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto text-xs space-y-3">
+        <div class="border rounded-xl overflow-hidden">
+          <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-100 font-semibold text-slate-700">
+              <tr>
+                <th class="p-2.5 text-left">Kode</th>
+                <th class="p-2.5 text-left">Pos Lama</th>
+                <th class="p-2.5 text-left text-emerald-800">
+                  Target COA Resmi
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              <template x-for="r in rules" :key="r.kode + r.pos_lama">
+                <tr>
+                  <td class="p-2.5 font-mono font-bold text-slate-800 bg-slate-50" x-text="r.kode || '-'"></td>
+                  <td class="p-2.5 text-slate-700" x-text="r.pos_lama"></td>
+                  <td class="p-2.5 font-bold text-emerald-800" x-text="r.coa_target || '(Dikosongkan)'"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="p-3 bg-slate-50 border-t text-right">
+        <button @click="showModal = false" class="bg-slate-800 text-white text-xs px-4 py-2 rounded-xl font-medium">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-slate-100 border-t border-slate-200 py-3 text-center text-xs text-slate-500 mt-auto">
+    Mahad Ibnu Taimiyah Bogor &copy; 2026 - Reactive Alpine.js Application
+  </footer>
+
+  <!-- Script Component -->
+  <script>
+    const DEFAULT_CONSTANTS = [
+      {
+        kode: "A11",
+        pos_lama: "Penerimaan Dari Yys Lajnah",
+        coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
+      },
+      {
+        kode: "A12",
+        pos_lama: "Penerimaan SPP Santri Non Yatim",
+        coa_target: "421010101 - Pendapatan IWS (Infaq Wali-Santri/Murid)",
+      },
+      {
+        kode: "A13",
+        pos_lama: "Sisa Dari Anggaran",
+        coa_target: "423010105 - Pendapatan Lain",
+      },
+      {
+        kode: "A14",
+        pos_lama: "Penerimaan Bos",
+        coa_target: "422010101 - Pendapatan Dana BOS",
+      },
+      {
+        kode: "A15",
+        pos_lama: "Penerimaan MiniMarket/Usaha Pesantren",
+        coa_target: "213010199 - Utang Jangka Pendek Lainnya",
+      },
+      {
+        kode: "A16",
+        pos_lama: "Penerimaan Bagi Hasil Bank",
+        coa_target: "611010104 - Pendapatan Administrasi Bank",
+      },
+      {
+        kode: "A17",
+        pos_lama: "Kafalah Yatim",
+        coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
+      },
+      {
+        kode: "A18",
+        pos_lama: "Ayat Silang (transfer antar kas/bank)",
+        coa_target: "AYAT_SILANG",
+      },
+      {
+        kode: "A19",
+        pos_lama: "Zakat, Infaq, Shodaqoh",
+        coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
+      },
+      {
+        kode: "A21",
+        pos_lama: "Sumbangan",
+        coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
+      },
+      {
+        kode: "A22",
+        pos_lama: "Dana Amanah Pembangunan",
+        coa_target: "421010103 - Pendapatan Pembangunan-DU PSB",
+      },
+      {
+        kode: "A23",
+        pos_lama: "Uang Tahunan",
+        coa_target: "DYNAMIC_UANG_TAHUNAN",
+      },
+      {
+        kode: "A24",
+        pos_lama: "Uang Ujian",
+        coa_target: "421010104 - Pendapatan Tahunan-DU PSB",
+      },
+      {
+        kode: "A26",
+        pos_lama: "Dana Titip (Uang Saku Santri, Donasi, transfer dll)",
+        coa_target: "DYNAMIC_DANA_TITIP",
+      },
+      {
+        kode: "A27",
+        pos_lama: "Piutang Guru & Karyawan",
+        coa_target: "112030102 - Piutang Pegawai",
+      },
+
+      // A28 (Penerimaan Lain-lain) dikosongkan
+      { kode: "A28", pos_lama: "Penerimaan Lain-lain", coa_target: "" },
+
+      {
+        kode: "B11",
+        pos_lama: "Mukafaah",
+        coa_target: "521010101 - Beban Mukafaah Markaz",
+      },
+      {
+        kode: "B12",
+        pos_lama: "Sekretariat",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B13",
+        pos_lama: "Pendidikan",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B14",
+        pos_lama: "Kesantrian",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B15",
+        pos_lama: "Bidang Umum",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B16",
+        pos_lama: "Konsumsi",
+        coa_target: "521010113 - Beban Belanja Dapur Markaz",
+      },
+      {
+        kode: "B17",
+        pos_lama: "Bidang Keuangan",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B18",
+        pos_lama: "Bidang Rumah Tangga",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B19",
+        pos_lama: "Bidang Usaha",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B110",
+        pos_lama: "Bidang Marhalah (MI, MTs dan MA)",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B111",
+        pos_lama: "Bea Tagihan Listrik",
+        coa_target: "521010107 - Beban Listrik-Air-Gas Markaz",
+      },
+      {
+        kode: "B112",
+        pos_lama: "Bea Telepon Dan Internet",
+        coa_target: "521010115 - Beban Telepon-HP Markaz",
+      },
+      {
+        kode: "B113",
+        pos_lama: "Bea Operasional Klinik",
+        coa_target: "522010104 - Beban Tunjangan Kesehatan",
+      },
+      {
+        kode: "B115",
+        pos_lama: "Uang Muka / Kas Bon Operasional Mahad",
+        coa_target: "113020102 - Uang Muka Markaz",
+      },
+      {
+        kode: "B116",
+        pos_lama: "Bea Rutin Lainnya ( Uang saku santri, Adm bank dll )",
+        coa_target: "",
+      },
+      {
+        kode: "B117",
+        pos_lama: "Hutang Laundry ke Mitra",
+        coa_target: "213010199 - Utang Jangka Pendek Lainnya",
+      },
+      {
+        kode: "B118",
+        pos_lama: "Bidang Khidmah",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B119",
+        pos_lama: "Kesantrian Putri",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B120",
+        pos_lama: "Bidang Multimedia",
+        coa_target: "521010110 - Beban Operasional Markaz",
+      },
+      {
+        kode: "B21",
+        pos_lama: "Pelaksanaan Dana Amanah Pembangunan",
+        coa_target: "522010107 - Beban Pemeliharaan",
+      },
+      {
+        kode: "B22",
+        pos_lama: "Pelaksanaan Acara",
+        coa_target: "521010126 - Beban Kegiatan-Program",
+      },
+      {
+        kode: "B23",
+        pos_lama: "Piutang Guru & Karyawan",
+        coa_target: "112030102 - Piutang Pegawai",
+      },
+      {
+        kode: "B24",
+        pos_lama: "Uang Muka / Kas Bon ( Tidak Rutin )",
+        coa_target: "113020102 - Uang Muka Markaz",
+      },
+      {
+        kode: "B29",
+        pos_lama: "Bea Tidak Rutin Lainnya",
+        coa_target: "",
+      },
+      {
+        kode: "B31",
+        pos_lama: "Beban Biaya Tahunan",
+        coa_target: "",
+      },
+    ];
+
+    function appData() {
+      return {
+        isUploaded: false,
+        isLoading: false,
+        dragover: false,
+        showModal: false,
+        uploadedFileName: "",
+        selectedDate: "ALL",
+        selectedKasBank: "ALL",
+        searchQuery: "",
+        rules: DEFAULT_CONSTANTS,
+        allData: [],
+
+        initApp() {
+          console.log("Alpine.js Initialized");
         },
 
-        // A28 (Penerimaan Lain-lain) dikosongkan
-        { kode: "A28", pos_lama: "Penerimaan Lain-lain", coa_target: "" },
+        handleDrop(e) {
+          this.dragover = false;
+          if (e.dataTransfer.files.length)
+            this.processFile(e.dataTransfer.files[0]);
+        },
 
-        {
-          kode: "B11",
-          pos_lama: "Mukafaah",
-          coa_target: "521010101 - Beban Mukafaah Markaz",
+        handleFileSelect(e) {
+          if (e.target.files.length) this.processFile(e.target.files[0]);
         },
-        {
-          kode: "B12",
-          pos_lama: "Sekretariat",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B13",
-          pos_lama: "Pendidikan",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B14",
-          pos_lama: "Kesantrian",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B15",
-          pos_lama: "Bidang Umum",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B16",
-          pos_lama: "Konsumsi",
-          coa_target: "521010113 - Beban Belanja Dapur Markaz",
-        },
-        {
-          kode: "B17",
-          pos_lama: "Bidang Keuangan",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B18",
-          pos_lama: "Bidang Rumah Tangga",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B19",
-          pos_lama: "Bidang Usaha",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B110",
-          pos_lama: "Bidang Marhalah (MI, MTs dan MA)",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B111",
-          pos_lama: "Bea Tagihan Listrik",
-          coa_target: "521010107 - Beban Listrik-Air-Gas Markaz",
-        },
-        {
-          kode: "B112",
-          pos_lama: "Bea Telepon Dan Internet",
-          coa_target: "521010115 - Beban Telepon-HP Markaz",
-        },
-        {
-          kode: "B113",
-          pos_lama: "Bea Operasional Klinik",
-          coa_target: "522010104 - Beban Tunjangan Kesehatan",
-        },
-        {
-          kode: "B115",
-          pos_lama: "Uang Muka / Kas Bon Operasional Mahad",
-          coa_target: "113020102 - Uang Muka Markaz",
-        },
-        {
-          kode: "B116",
-          pos_lama: "Bea Rutin Lainnya ( Uang saku santri, Adm bank dll )",
-          coa_target: "",
-        },
-        {
-          kode: "B117",
-          pos_lama: "Hutang Laundry ke Mitra",
-          coa_target: "213010199 - Utang Jangka Pendek Lainnya",
-        },
-        {
-          kode: "B118",
-          pos_lama: "Bidang Khidmah",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B119",
-          pos_lama: "Kesantrian Putri",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B120",
-          pos_lama: "Bidang Multimedia",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B21",
-          pos_lama: "Pelaksanaan Dana Amanah Pembangunan",
-          coa_target: "522010107 - Beban Pemeliharaan",
-        },
-        {
-          kode: "B22",
-          pos_lama: "Pelaksanaan Acara",
-          coa_target: "521010126 - Beban Kegiatan-Program",
-        },
-        {
-          kode: "B23",
-          pos_lama: "Piutang Guru & Karyawan",
-          coa_target: "112030102 - Piutang Pegawai",
-        },
-        {
-          kode: "B24",
-          pos_lama: "Uang Muka / Kas Bon ( Tidak Rutin )",
-          coa_target: "113020102 - Uang Muka Markaz",
-        },
-        {
-          kode: "B29",
-          pos_lama: "Bea Tidak Rutin Lainnya",
-          coa_target: "",
-        },
-        {
-          kode: "B31",
-          pos_lama: "Beban Biaya Tahunan",
-          coa_target: "",
-        },
-      ];
 
-      function appData() {
-        return {
-          isUploaded: false,
-          isLoading: false,
-          dragover: false,
-          showModal: false,
-          uploadedFileName: "",
-          selectedDate: "ALL",
-          selectedKasBank: "ALL",
-          searchQuery: "",
-          rules: DEFAULT_CONSTANTS,
-          allData: [],
+        processFile(file) {
+          this.uploadedFileName = file.name;
+          this.isLoading = true;
 
-          initApp() {
-            console.log("Alpine.js Initialized");
-          },
+          setTimeout(() => {
+            const reader = new FileReader();
 
-          handleDrop(e) {
-            this.dragover = false;
-            if (e.dataTransfer.files.length)
-              this.processFile(e.dataTransfer.files[0]);
-          },
+            reader.onload = (e) => {
+              try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: "array" });
+                const sheetName =
+                  workbook.SheetNames.find(
+                    (s) => s.toLowerCase() === "jurnal",
+                  ) || workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const rawRows = XLSX.utils.sheet_to_json(worksheet, {
+                  header: 1,
+                });
 
-          handleFileSelect(e) {
-            if (e.target.files.length) this.processFile(e.target.files[0]);
-          },
+                let headerRowIndex = 5;
+                let headerRow = null;
 
-          processFile(file) {
-            this.uploadedFileName = file.name;
-            this.isLoading = true;
-
-            setTimeout(() => {
-              const reader = new FileReader();
-
-              reader.onload = (e) => {
-                try {
-                  const data = new Uint8Array(e.target.result);
-                  const workbook = XLSX.read(data, { type: "array" });
-                  const sheetName =
-                    workbook.SheetNames.find(
-                      (s) => s.toLowerCase() === "jurnal",
-                    ) || workbook.SheetNames[0];
-                  const worksheet = workbook.Sheets[sheetName];
-                  const rawRows = XLSX.utils.sheet_to_json(worksheet, {
-                    header: 1,
-                  });
-
-                  let headerRowIndex = 5;
-                  let headerRow = null;
-
-                  for (let i = 0; i < Math.min(rawRows.length, 15); i++) {
-                    const rowStr = (rawRows[i] || []).join(" ").toLowerCase();
-                    if (
-                      rowStr.includes("kode") ||
-                      rowStr.includes("kas/bank") ||
-                      rowStr.includes("nama rekening") ||
-                      rowStr.includes("debet") ||
-                      rowStr.includes("kredit")
-                    ) {
-                      headerRowIndex = i;
-                      headerRow = rawRows[i];
-                      break;
-                    }
+                for (let i = 0; i < Math.min(rawRows.length, 15); i++) {
+                  const rowStr = (rawRows[i] || []).join(" ").toLowerCase();
+                  if (
+                    rowStr.includes("kode") ||
+                    rowStr.includes("kas/bank") ||
+                    rowStr.includes("nama rekening") ||
+                    rowStr.includes("debet") ||
+                    rowStr.includes("kredit")
+                  ) {
+                    headerRowIndex = i;
+                    headerRow = rawRows[i];
+                    break;
                   }
-
-                  const dataRows = rawRows.slice(headerRowIndex + 1);
-                  this.parseJournalRows(dataRows, headerRow);
-                  this.isUploaded = true;
-                } catch (err) {
-                  alert("Gagal membaca file Excel: " + err.message);
-                } finally {
-                  this.isLoading = false;
                 }
-              };
 
-              reader.readAsArrayBuffer(file);
-            }, 100);
-          },
-
-          parseJournalRows(rows, headerRow) {
-            this.allData = [];
-
-            let idxKode = 0,
-              idxKasBank = 1,
-              idxTanggal = 2,
-              idxPosLama = 3,
-              idxUraian = 4,
-              idxNama = 5,
-              idxDebet = 6,
-              idxKredit = 7;
-
-            if (headerRow) {
-              headerRow.forEach((cell, cellIdx) => {
-                const cStr = String(cell || "")
-                  .toLowerCase()
-                  .trim();
-                if (cStr.includes("kode")) idxKode = cellIdx;
-                else if (cStr.includes("kas") || cStr.includes("bank"))
-                  idxKasBank = cellIdx;
-                else if (cStr.includes("tanggal") || cStr.includes("tgl"))
-                  idxTanggal = cellIdx;
-                else if (cStr.includes("rekening") || cStr.includes("pos"))
-                  idxPosLama = cellIdx;
-                else if (cStr.includes("uraian") || cStr.includes("keterangan"))
-                  idxUraian = cellIdx;
-                else if (cStr === "nama") idxNama = cellIdx;
-                else if (cStr.includes("debet") || cStr.includes("debit"))
-                  idxDebet = cellIdx;
-                else if (cStr.includes("kredit")) idxKredit = cellIdx;
-              });
-            }
-
-            rows.forEach((row, idx) => {
-              if (!row || row.length === 0) return;
-
-              const kodeLama = String(row[idxKode] || "").trim();
-              const rawKasBank = row[idxKasBank];
-              const tanggal = this.formatTanggal(row[idxTanggal]);
-              const posLama = String(row[idxPosLama] || "").trim();
-              const uraian = String(row[idxUraian] || "").trim();
-              const nama = String(row[idxNama] || "").trim();
-
-              const debet = this.parseIndonesianNumber(row[idxDebet]);
-              const kredit = this.parseIndonesianNumber(row[idxKredit]);
-
-              if (
-                !tanggal &&
-                !posLama &&
-                !uraian &&
-                debet === 0 &&
-                kredit === 0
-              )
-                return;
-
-              const kasBank = this.normalizeKasBank(rawKasBank, row);
-
-              const isUangMuka =
-                posLama.toLowerCase().includes("uang muka") ||
-                posLama.toLowerCase().includes("kas bon") ||
-                ["B115", "B24"].includes(kodeLama.toUpperCase());
-              const isNominalMinus = debet < 0 || kredit < 0;
-
-              const isPenerimaanLain =
-                posLama.toLowerCase().includes("penerimaan lain") ||
-                kodeLama.toUpperCase() === "A28";
-
-              let posBaru = "";
-              let hasMatch = false;
-
-              const isMuamalatAdmin =
-                kasBank.toLowerCase().includes("muamalat") &&
-                (posLama.toLowerCase().includes("administrasi") ||
-                  uraian.toLowerCase().includes("administrasi") ||
-                  uraian.toLowerCase().includes("biaya admin") ||
-                  uraian.toLowerCase().includes("admin"));
-
-              if (isMuamalatAdmin) {
-                posBaru = "611010103 - Pendapatan Fee VA Bank";
-                hasMatch = true;
-              } else if (isPenerimaanLain) {
-                posBaru = "";
-                hasMatch = false;
-              } else if (isUangMuka && isNominalMinus) {
-                posBaru = "";
-                hasMatch = false;
-              } else {
-                posBaru = this.mapToCOA(
-                  kodeLama,
-                  kasBank,
-                  posLama,
-                  uraian,
-                  debet,
-                  kredit,
-                );
-                hasMatch = posBaru !== "" && posBaru !== posLama;
+                const dataRows = rawRows.slice(headerRowIndex + 1);
+                this.parseJournalRows(dataRows, headerRow);
+                this.isUploaded = true;
+              } catch (err) {
+                alert("Gagal membaca file Excel: " + err.message);
+              } finally {
+                this.isLoading = false;
               }
+            };
 
-              this.allData.push({
-                id: idx,
-                tanggal,
-                kasBank,
+            reader.readAsArrayBuffer(file);
+          }, 100);
+        },
+
+        parseJournalRows(rows, headerRow) {
+          this.allData = [];
+
+          let idxKode = 0,
+            idxKasBank = 1,
+            idxTanggal = 2,
+            idxPosLama = 3,
+            idxUraian = 4,
+            idxNama = 5,
+            idxDebet = 6,
+            idxKredit = 7;
+
+          if (headerRow) {
+            headerRow.forEach((cell, cellIdx) => {
+              const cStr = String(cell || "")
+                .toLowerCase()
+                .trim();
+              if (cStr.includes("kode")) idxKode = cellIdx;
+              else if (cStr.includes("kas") || cStr.includes("bank"))
+                idxKasBank = cellIdx;
+              else if (cStr.includes("tanggal") || cStr.includes("tgl"))
+                idxTanggal = cellIdx;
+              else if (cStr.includes("rekening") || cStr.includes("pos"))
+                idxPosLama = cellIdx;
+              else if (cStr.includes("uraian") || cStr.includes("keterangan"))
+                idxUraian = cellIdx;
+              else if (cStr === "nama") idxNama = cellIdx;
+              else if (cStr.includes("debet") || cStr.includes("debit"))
+                idxDebet = cellIdx;
+              else if (cStr.includes("kredit")) idxKredit = cellIdx;
+            });
+          }
+
+          rows.forEach((row, idx) => {
+            if (!row || row.length === 0) return;
+
+            const kodeLama = String(row[idxKode] || "").trim();
+            const rawKasBank = row[idxKasBank];
+            const tanggal = this.formatTanggal(row[idxTanggal]);
+            const posLama = String(row[idxPosLama] || "").trim();
+            const uraian = String(row[idxUraian] || "").trim();
+            const nama = String(row[idxNama] || "").trim();
+
+            const debet = this.parseIndonesianNumber(row[idxDebet]);
+            const kredit = this.parseIndonesianNumber(row[idxKredit]);
+
+            if (
+              !tanggal &&
+              !posLama &&
+              !uraian &&
+              debet === 0 &&
+              kredit === 0
+            )
+              return;
+
+            const kasBank = this.normalizeKasBank(rawKasBank, row);
+
+            const isUangMuka =
+              posLama.toLowerCase().includes("uang muka") ||
+              posLama.toLowerCase().includes("kas bon") ||
+              ["B115", "B24"].includes(kodeLama.toUpperCase());
+            const isNominalMinus = debet < 0 || kredit < 0;
+
+            const isPenerimaanLain =
+              posLama.toLowerCase().includes("penerimaan lain") ||
+              kodeLama.toUpperCase() === "A28";
+
+            let posBaru = "";
+            let hasMatch = false;
+
+            const isMuamalatAdmin =
+              kasBank.toLowerCase().includes("muamalat") &&
+              (posLama.toLowerCase().includes("administrasi") ||
+                uraian.toLowerCase().includes("administrasi") ||
+                uraian.toLowerCase().includes("biaya admin") ||
+                uraian.toLowerCase().includes("admin"));
+
+            if (isMuamalatAdmin) {
+              posBaru = "611010103 - Pendapatan Fee VA Bank";
+              hasMatch = true;
+            } else if (isPenerimaanLain) {
+              posBaru = "";
+              hasMatch = false;
+            } else if (isUangMuka && isNominalMinus) {
+              posBaru = "";
+              hasMatch = false;
+            } else {
+              posBaru = this.mapToCOA(
                 kodeLama,
+                kasBank,
                 posLama,
-                posBaru,
                 uraian,
-                nama,
                 debet,
                 kredit,
-                hasMatch,
-                selected: false,
-              });
+                nama,
+              );
+              hasMatch = posBaru !== "" && posBaru !== posLama;
+            }
+
+            this.allData.push({
+              id: idx,
+              tanggal,
+              kasBank,
+              kodeLama,
+              posLama,
+              posBaru,
+              uraian,
+              nama,
+              debet,
+              kredit,
+              hasMatch,
+              selected: false,
             });
-          },
+          });
+        },
 
-          normalizeKasBank(val, row) {
-            let str = String(val || "").trim();
-            let lower = str.toLowerCase();
+        normalizeKasBank(val, row) {
+          let str = String(val || "").trim();
+          let lower = str.toLowerCase();
 
-            if (lower.includes("bsi")) return "Bank BSI";
-            if (lower.includes("muamalat")) return "Bank Muamalat";
-            if (lower.includes("besar")) return "Kas Besar";
-            if (lower.includes("kecil")) return "Kas Kecil";
+          if (lower.includes("bsi")) return "Bank BSI";
+          if (lower.includes("muamalat")) return "Bank Muamalat";
+          if (lower.includes("besar")) return "Kas Besar";
+          if (lower.includes("kecil")) return "Kas Kecil";
 
-            if (row && Array.isArray(row)) {
-              for (let cell of row) {
-                let c = String(cell || "")
-                  .trim()
-                  .toLowerCase();
-                if (c.includes("bsi")) return "Bank BSI";
-                if (c.includes("muamalat")) return "Bank Muamalat";
-                if (c === "kas besar" || c.includes("kas besar"))
-                  return "Kas Besar";
-                if (c === "kas kecil" || c.includes("kas kecil"))
-                  return "Kas Kecil";
-              }
+          if (row && Array.isArray(row)) {
+            for (let cell of row) {
+              let c = String(cell || "")
+                .trim()
+                .toLowerCase();
+              if (c.includes("bsi")) return "Bank BSI";
+              if (c.includes("muamalat")) return "Bank Muamalat";
+              if (c === "kas besar" || c.includes("kas besar"))
+                return "Kas Besar";
+              if (c === "kas kecil" || c.includes("kas kecil"))
+                return "Kas Kecil";
             }
+          }
 
-            return str || "-";
-          },
+          return str || "-";
+        },
 
-          mapToCOA(kode, kasBank, posLama, uraian, debet, kredit) {
-            const pos = posLama.toLowerCase();
-            const ur = uraian.toLowerCase();
-            const kd = kode.toUpperCase();
+        mapToCOA(kode, kasBank, posLama, uraian, debet, kredit, nama = "") {
+          const pos = posLama.toLowerCase();
+          const ur = uraian.toLowerCase();
+          const kd = kode.toUpperCase();
+          const kb = kasBank.toLowerCase();
+          const nm = String(nama || "").toLowerCase();
 
-            // Aturan Khusus berdasarkan Uraian/Keterangan
-            if (ur.includes("tabungan siswa")) {
-              return "213010108 - Dana Titipan Tabungan Santri";
-            }
-            if (ur.includes("biaya kegiatan")) {
-              return "423010103 - Penerimaan Kegiatan-Program";
-            }
+          const isUangMuka =
+            pos.includes("uang muka") ||
+            pos.includes("kas bon") ||
+            ["B115", "B24"].includes(kd);
 
-            if (kd) {
-              const m = this.rules.find(
-                (r) => r.kode && r.kode.toUpperCase() === kd,
-              );
-              if (m) return this.resolveTarget(m.coa_target, ur, posLama);
-            }
-
-            if (pos) {
-              const m = this.rules.find(
-                (r) => r.pos_lama && pos.includes(r.pos_lama.toLowerCase()),
-              );
-              if (m) return this.resolveTarget(m.coa_target, ur, posLama);
-            }
-
-            if (pos.includes("uang tahunan"))
-              return this.processUangTahunan(ur);
-            if (pos.includes("dana titip") || pos.includes("tabungan"))
-              return this.processDanaTitip(ur);
-
-            return posLama;
-          },
-
-          resolveTarget(target, ur, fallbackPos) {
-            if (target === "DYNAMIC_UANG_TAHUNAN")
-              return this.processUangTahunan(ur);
-            if (target === "DYNAMIC_DANA_TITIP")
-              return this.processDanaTitip(ur);
-            if (target === "AYAT_SILANG") return fallbackPos;
-            return target;
-          },
-
-          processUangTahunan(ur) {
-            if (ur.includes("bangunan") || ur.includes("wakaf bangunan"))
-              return "421010103 - Pendapatan Pembangunan-DU PSB";
-            if (ur.includes("pendaftaran") || ur.includes("psb"))
-              return "421010102 - Pendapatan Pendaftaran PSB";
-            if (ur.includes("seragam") || ur.includes("perlengkapan"))
-              return "421010105 - Pendapatan Perlengkapan-DU PSB";
-            return "421010104 - Pendapatan Tahunan-DU PSB";
-          },
-
-          processDanaTitip(ur) {
-            if (ur.includes("pegawai"))
-              return "213010103 - Dana Titipan Tabungan Pegawai";
-            if (ur.includes("tabungan siswa"))
-              return "213010108 - Dana Titipan Tabungan Santri";
-            if (
-              ur.includes("santri") ||
-              ur.includes("siswa") ||
-              ur.includes("saku") ||
-              ur.includes("ekskul")
-            )
-              return "213010106 - Dana Titipan Santri";
+          // ATURAN KHUSUS: Kas Kecil + Bukan Uang Muka/Kasbon + Keterangan "tabungan siswa" + Nama "Aditya/Adiya"
+          // (Pengambilan Tabungan / Uang Saku Santri)
+          if (
+            !isUangMuka &&
+            kb.includes("kas kecil") &&
+            ur.includes("tabungan siswa") &&
+            (nm.includes("aditya") || nm.includes("adiya"))
+          ) {
             return "213010108 - Dana Titipan Tabungan Santri";
-          },
+          }
 
-          get availableDates() {
-            const set = new Set();
-            this.allData.forEach((item) => {
-              if (item.tanggal) set.add(item.tanggal);
-            });
-            return Array.from(set).sort();
-          },
+          // ATURAN KHUSUS: Tabungan Siswa (Penerimaan/Umum)
+          if (ur.includes("tabungan siswa")) {
+            return "213010108 - Dana Titipan Tabungan Santri";
+          }
 
-          get availableKasBanks() {
-            const set = new Set();
-            this.allData.forEach((item) => {
-              if (item.kasBank && item.kasBank !== "-") set.add(item.kasBank);
-            });
-            return Array.from(set).sort();
-          },
+          // ATURAN KHUSUS: Biaya Kegiatan
+          if (ur.includes("biaya kegiatan")) {
+            return "423010103 - Penerimaan Kegiatan-Program";
+          }
 
-          get filteredData() {
-            return this.allData.filter((item) => {
-              const matchDate =
-                this.selectedDate === "ALL" ||
-                item.tanggal === this.selectedDate;
-              const matchKasBank =
-                this.selectedKasBank === "ALL" ||
-                item.kasBank === this.selectedKasBank;
-              const q = this.searchQuery.toLowerCase();
-              const matchQuery =
-                !q ||
-                item.posLama.toLowerCase().includes(q) ||
-                item.posBaru.toLowerCase().includes(q) ||
-                item.uraian.toLowerCase().includes(q) ||
-                item.nama.toLowerCase().includes(q) ||
-                item.kasBank.toLowerCase().includes(q);
-
-              return matchDate && matchKasBank && matchQuery;
-            });
-          },
-
-          getTableTitle() {
-            let title = "Daftar Transaksi Jurnal";
-            if (this.selectedDate !== "ALL")
-              title += ` &bull; Tgl ${this.selectedDate}`;
-            if (this.selectedKasBank !== "ALL")
-              title += ` &bull; ${this.selectedKasBank}`;
-            return title;
-          },
-
-          toggleSelectAll(e) {
-            const isChecked = e.target.checked;
-            this.filteredData.forEach((item) => {
-              item.selected = isChecked;
-            });
-          },
-
-          resetFile() {
-            this.isUploaded = false;
-            this.uploadedFileName = "";
-            this.allData = [];
-            this.selectedDate = "ALL";
-            this.selectedKasBank = "ALL";
-            this.searchQuery = "";
-          },
-
-          handleRowAction(item) {
-            // 1. Format Date
-            let tglFormat = item.tanggal || "";
-            if (tglFormat.includes("-")) {
-              const parts = tglFormat.split("-");
-              if (parts.length === 3)
-                tglFormat = `${parts[2]}/${parts[1]}/${parts[0]}`;
-            }
-
-            // 2. Format Keterangan
-            let keterangan = item.uraian || "";
-
-            // 3. Clean Bank Name (removes "Bank " / "bank ")
-            let bankName = item.kasBank || "";
-            bankName = bankName.replace(/bank\s+/gi, "").trim();
-
-            let posName = item.posBaru || "";
-            let bankType = "DEBIT";
-            let posType = "KREDIT";
-            let amount = 0;
-
-            // --- REVERSED LOGIC ---
-            if (item.debet > 0) {
-              // Excel Debet -> Bank is DEBIT, Pos is KREDIT
-              bankType = "DEBIT";
-              posType = "KREDIT";
-              amount = item.debet;
-            } else if (item.kredit > 0) {
-              // Excel Kredit -> Bank is KREDIT, Pos is DEBIT
-              bankType = "KREDIT";
-              posType = "DEBIT";
-              amount = item.kredit;
-            }
-
-            // Payload: TGL|KETERANGAN|BANK_NAME|BANK_TYPE|POS_NAME|POS_TYPE|AMOUNT
-            const ahkPayload = `${tglFormat}|${keterangan}|${bankName}|${bankType}|${posName}|${posType}|${amount}`;
-
-            navigator.clipboard.writeText(ahkPayload).then(() => {
-              alert("AHK Payload Copied:", ahkPayload);
-            });
-          },
-
-          parseIndonesianNumber(val) {
-            if (typeof val === "number") return isNaN(val) ? 0 : val;
-            if (!val) return 0;
-            let str = String(val).trim();
-
-            if (
-              str === "-" ||
-              str === "Rp -" ||
-              str === "" ||
-              str === "Rp-" ||
-              str === "Rp. -"
-            )
-              return 0;
-
-            let isNegative = false;
-            if (str.startsWith("-") || str.endsWith("-")) isNegative = true;
-            if (str.startsWith("(") && str.endsWith(")")) {
-              isNegative = true;
-              str = str.slice(1, -1);
-            }
-
-            str = str.replace(/Rp|\s/gi, "").trim();
-
-            if (str.includes(",")) {
-              str = str.replace(/\./g, "").replace(",", ".");
-            } else {
-              str = str.replace(/\./g, "");
-            }
-
-            const clean = str.replace(/[^0-9.-]/g, "");
-            let num = parseFloat(clean) || 0;
-            return isNegative ? -Math.abs(num) : num;
-          },
-
-          formatRupiah(num) {
-            if (num === 0 || isNaN(num) || num === undefined) return "-";
-            const formatted = new Intl.NumberFormat("id-ID").format(
-              Math.abs(num),
+          if (kd) {
+            const m = this.rules.find(
+              (r) => r.kode && r.kode.toUpperCase() === kd,
             );
-            return num < 0 ? `(${formatted})` : `Rp ${formatted}`;
-          },
+            if (m) return this.resolveTarget(m.coa_target, ur, posLama);
+          }
 
-          formatTanggal(val) {
-            if (!val) return "";
-            if (typeof val === "number") {
-              const date = XLSX.SSF.parse_date_code(val);
-              if (date) {
-                const y = date.y;
-                const m = String(date.m).padStart(2, "0");
-                const d = String(date.d).padStart(2, "0");
-                return `${y}-${m}-${d}`;
-              }
+          if (pos) {
+            const m = this.rules.find(
+              (r) => r.pos_lama && pos.includes(r.pos_lama.toLowerCase()),
+            );
+            if (m) return this.resolveTarget(m.coa_target, ur, posLama);
+          }
+
+          if (pos.includes("uang tahunan"))
+            return this.processUangTahunan(ur);
+          if (pos.includes("dana titip") || pos.includes("tabungan"))
+            return this.processDanaTitip(ur);
+
+          return posLama;
+        },
+
+        resolveTarget(target, ur, fallbackPos) {
+          if (target === "DYNAMIC_UANG_TAHUNAN")
+            return this.processUangTahunan(ur);
+          if (target === "DYNAMIC_DANA_TITIP")
+            return this.processDanaTitip(ur);
+          if (target === "AYAT_SILANG") return fallbackPos;
+          return target;
+        },
+
+        processUangTahunan(ur) {
+          if (ur.includes("bangunan") || ur.includes("wakaf bangunan"))
+            return "421010103 - Pendapatan Pembangunan-DU PSB";
+          if (ur.includes("pendaftaran") || ur.includes("psb"))
+            return "421010102 - Pendapatan Pendaftaran PSB";
+          if (ur.includes("seragam") || ur.includes("perlengkapan"))
+            return "421010105 - Pendapatan Perlengkapan-DU PSB";
+          return "421010104 - Pendapatan Tahunan-DU PSB";
+        },
+
+        processDanaTitip(ur) {
+          if (ur.includes("pegawai"))
+            return "213010103 - Dana Titipan Tabungan Pegawai";
+          if (ur.includes("tabungan siswa"))
+            return "213010108 - Dana Titipan Tabungan Santri";
+          if (
+            ur.includes("santri") ||
+            ur.includes("siswa") ||
+            ur.includes("saku") ||
+            ur.includes("ekskul")
+          )
+            return "213010106 - Dana Titipan Santri";
+          return "213010108 - Dana Titipan Tabungan Santri";
+        },
+
+        get availableDates() {
+          const set = new Set();
+          this.allData.forEach((item) => {
+            if (item.tanggal) set.add(item.tanggal);
+          });
+          return Array.from(set).sort();
+        },
+
+        get availableKasBanks() {
+          const set = new Set();
+          this.allData.forEach((item) => {
+            if (item.kasBank && item.kasBank !== "-") set.add(item.kasBank);
+          });
+          return Array.from(set).sort();
+        },
+
+        get filteredData() {
+          return this.allData.filter((item) => {
+            const matchDate =
+              this.selectedDate === "ALL" ||
+              item.tanggal === this.selectedDate;
+            const matchKasBank =
+              this.selectedKasBank === "ALL" ||
+              item.kasBank === this.selectedKasBank;
+            const q = this.searchQuery.toLowerCase();
+            const matchQuery =
+              !q ||
+              item.posLama.toLowerCase().includes(q) ||
+              item.posBaru.toLowerCase().includes(q) ||
+              item.uraian.toLowerCase().includes(q) ||
+              item.nama.toLowerCase().includes(q) ||
+              item.kasBank.toLowerCase().includes(q);
+
+            return matchDate && matchKasBank && matchQuery;
+          });
+        },
+
+        getTableTitle() {
+          let title = "Daftar Transaksi Jurnal";
+          if (this.selectedDate !== "ALL")
+            title += ` &bull; Tgl ${this.selectedDate}`;
+          if (this.selectedKasBank !== "ALL")
+            title += ` &bull; ${this.selectedKasBank}`;
+          return title;
+        },
+
+        toggleSelectAll(e) {
+          const isChecked = e.target.checked;
+          this.filteredData.forEach((item) => {
+            item.selected = isChecked;
+          });
+        },
+
+        resetFile() {
+          this.isUploaded = false;
+          this.uploadedFileName = "";
+          this.allData = [];
+          this.selectedDate = "ALL";
+          this.selectedKasBank = "ALL";
+          this.searchQuery = "";
+        },
+
+        handleRowAction(item) {
+          // 1. Format Date
+          let tglFormat = item.tanggal || "";
+          if (tglFormat.includes("-")) {
+            const parts = tglFormat.split("-");
+            if (parts.length === 3)
+              tglFormat = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          }
+
+          // 2. Format Keterangan
+          let keterangan = item.uraian || "";
+
+          // 3. Clean Bank Name (removes "Bank " / "bank ")
+          let bankName = item.kasBank || "";
+          bankName = bankName.replace(/bank\s+/gi, "").trim();
+
+          let posName = item.posBaru || "";
+          let bankType = "DEBIT";
+          let posType = "KREDIT";
+          let amount = 0;
+
+          // --- REVERSED LOGIC ---
+          if (item.debet > 0) {
+            // Excel Debet -> Bank is DEBIT, Pos is KREDIT
+            bankType = "DEBIT";
+            posType = "KREDIT";
+            amount = item.debet;
+          } else if (item.kredit > 0) {
+            // Excel Kredit -> Bank is KREDIT, Pos is DEBIT
+            bankType = "KREDIT";
+            posType = "DEBIT";
+            amount = item.kredit;
+          }
+
+          // Payload: TGL|KETERANGAN|BANK_NAME|BANK_TYPE|POS_NAME|POS_TYPE|AMOUNT
+          const ahkPayload = `${tglFormat}|${keterangan}|${bankName}|${bankType}|${posName}|${posType}|${amount}`;
+
+          navigator.clipboard.writeText(ahkPayload).then(() => {
+            alert("AHK Payload Copied:", ahkPayload);
+          });
+        },
+
+        parseIndonesianNumber(val) {
+          if (typeof val === "number") return isNaN(val) ? 0 : val;
+          if (!val) return 0;
+          let str = String(val).trim();
+
+          if (
+            str === "-" ||
+            str === "Rp -" ||
+            str === "" ||
+            str === "Rp-" ||
+            str === "Rp. -"
+          )
+            return 0;
+
+          let isNegative = false;
+          if (str.startsWith("-") || str.endsWith("-")) isNegative = true;
+          if (str.startsWith("(") && str.endsWith(")")) {
+            isNegative = true;
+            str = str.slice(1, -1);
+          }
+
+          str = str.replace(/Rp|\s/gi, "").trim();
+
+          if (str.includes(",")) {
+            str = str.replace(/\./g, "").replace(",", ".");
+          } else {
+            str = str.replace(/\./g, "");
+          }
+
+          const clean = str.replace(/[^0-9.-]/g, "");
+          let num = parseFloat(clean) || 0;
+          return isNegative ? -Math.abs(num) : num;
+        },
+
+        formatRupiah(num) {
+          if (num === 0 || isNaN(num) || num === undefined) return "-";
+          const formatted = new Intl.NumberFormat("id-ID").format(
+            Math.abs(num),
+          );
+          return num < 0 ? `(${formatted})` : `Rp ${formatted}`;
+        },
+
+        formatTanggal(val) {
+          if (!val) return "";
+          if (typeof val === "number") {
+            const date = XLSX.SSF.parse_date_code(val);
+            if (date) {
+              const y = date.y;
+              const m = String(date.m).padStart(2, "0");
+              const d = String(date.d).padStart(2, "0");
+              return `${y}-${m}-${d}`;
             }
-            return String(val);
-          },
-        };
-      }
-    </script>
-  </body>
+          }
+          return String(val);
+        },
+      };
+    }
+  </script>
+</body>
+
 </html>
