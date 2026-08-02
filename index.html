@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard Jurnal Ke COA - Alpine.js Edition</title>
+    <title>PENGELUARAN</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS CDN -->
@@ -92,35 +92,19 @@
           </div>
           <div>
             <h1 class="text-base font-bold tracking-tight leading-tight">
-              Dashboard Jurnal Keuangan
+              PENGELUARAN
             </h1>
-            <p class="text-xs text-emerald-200">
-              Mahad Ibnu Taimiyah Bogor &bull; Alpine.js App
-            </p>
           </div>
         </div>
 
         <!-- Header Buttons -->
         <div class="flex items-center space-x-3">
-          <button
-            @click="showModal = true"
+           <a
+            href="pemasukan.html"
             class="text-xs bg-emerald-800 hover:bg-emerald-700 text-emerald-100 border border-emerald-600 px-3.5 py-2 rounded-xl font-medium transition flex items-center space-x-1.5 shadow-sm"
           >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              ></path>
-            </svg>
-            <span>Setting Pos Rules</span>
-          </button>
+            <span>DAFTAR PEMASUKAN</span>
+        </a>
         </div>
       </div>
     </header>
@@ -315,10 +299,6 @@
                     POS BARU (COA RESMI)
                   </th>
                   <th class="px-3.5 py-2.5 text-left">URAIAN</th>
-                  <th class="px-3.5 py-2.5 text-left">NAMA</th>
-                  <th class="px-3.5 py-2.5 text-right font-bold text-slate-800">
-                    DEBET
-                  </th>
                   <th class="px-3.5 py-2.5 text-right font-bold text-slate-800">
                     KREDIT
                   </th>
@@ -373,16 +353,6 @@
                       class="px-3.5 py-2.5 text-slate-600 max-w-xs"
                       :title="item.uraian"
                       x-text="item.uraian || '-'"
-                    ></td>
-                    <td
-                      class="px-3.5 py-2.5 text-slate-500"
-                      x-text="item.nama || '-'"
-                    ></td>
-
-                    <td
-                      class="px-3.5 py-2.5 text-right font-mono font-medium"
-                      :class="item.debet < 0 ? 'text-rose-600' : 'text-slate-800'"
-                      x-text="formatRupiah(item.debet)"
                     ></td>
                     <td
                       class="px-3.5 py-2.5 text-right font-mono font-medium"
@@ -451,24 +421,22 @@
             <table class="min-w-full divide-y divide-slate-200">
               <thead class="bg-slate-100 font-semibold text-slate-700">
                 <tr>
-                  <th class="p-2.5 text-left">Kode</th>
-                  <th class="p-2.5 text-left">Pos Lama</th>
+                  <th class="p-2.5 text-left">Kata Kunci (Pos Lama + Uraian)</th>
                   <th class="p-2.5 text-left text-emerald-800">
                     Target COA Resmi
                   </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 bg-white">
-                <template x-for="r in rules" :key="r.kode + r.pos_lama">
+                <template x-for="(r, idx) in rules" :key="idx">
                   <tr>
                     <td
-                      class="p-2.5 font-mono font-bold text-slate-800 bg-slate-50"
-                      x-text="r.kode || '-'"
+                      class="p-2.5 font-mono text-slate-700"
+                      x-text="r.keys.join(', ')"
                     ></td>
-                    <td class="p-2.5 text-slate-700" x-text="r.pos_lama"></td>
                     <td
                       class="p-2.5 font-bold text-emerald-800"
-                      x-text="r.coa_target || '(Dikosongkan)'"
+                      x-text="r.coa || '(Dikosongkan)'"
                     ></td>
                   </tr>
                 </template>
@@ -493,215 +461,12 @@
       Mahad Ibnu Taimiyah Bogor &copy; 2026 - Reactive Alpine.js Application
     </footer>
 
+    <!-- MENGAMBIL LOGIKA MAPPING DARI FILE EXTERNAL -->
+    <!-- PASTIKAN FILE INI BERADA DI FOLDER YANG SAMA DENGAN index.html -->
+    <script src="pos_mapping.js"></script>
+
     <!-- Script Component -->
     <script>
-      const DEFAULT_CONSTANTS = [
-        {
-          kode: "A11",
-          pos_lama: "Penerimaan Dari Yys Lajnah",
-          coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
-        },
-        {
-          kode: "A12",
-          pos_lama: "Penerimaan SPP Santri Non Yatim",
-          coa_target: "421010101 - Pendapatan IWS (Infaq Wali-Santri/Murid)",
-        },
-        {
-          kode: "A13",
-          pos_lama: "Sisa Dari Anggaran",
-          coa_target: "423010105 - Pendapatan Lain",
-        },
-        {
-          kode: "A14",
-          pos_lama: "Penerimaan Bos",
-          coa_target: "422010101 - Pendapatan Dana BOS",
-        },
-        {
-          kode: "A15",
-          pos_lama: "Penerimaan MiniMarket/Usaha Pesantren",
-          coa_target: "213010199 - Utang Jangka Pendek Lainnya",
-        },
-        {
-          kode: "A16",
-          pos_lama: "Penerimaan Bagi Hasil Bank",
-          coa_target: "611010104 - Pendapatan Administrasi Bank",
-        },
-        {
-          kode: "A17",
-          pos_lama: "Kafalah Yatim",
-          coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
-        },
-        {
-          kode: "A18",
-          pos_lama: "Ayat Silang (transfer antar kas/bank)",
-          coa_target: "AYAT_SILANG",
-        },
-        {
-          kode: "A19",
-          pos_lama: "Zakat, Infaq, Shodaqoh",
-          coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
-        },
-        {
-          kode: "A21",
-          pos_lama: "Sumbangan",
-          coa_target: "423010102 - Pendapatan Bantuan-Sumbangan dan Lainnya",
-        },
-        {
-          kode: "A22",
-          pos_lama: "Dana Amanah Pembangunan",
-          coa_target: "117010101 - RAK Yayasan",
-        },
-        {
-          kode: "A23",
-          pos_lama: "Uang Tahunan",
-          coa_target: "DYNAMIC_UANG_TAHUNAN",
-        },
-        {
-          kode: "A24",
-          pos_lama: "Uang Ujian",
-          coa_target: "421010104 - Pendapatan Tahunan-DU PSB",
-        },
-        {
-          kode: "A26",
-          pos_lama: "Dana Titip (Uang Saku Santri, Donasi, transfer dll)",
-          coa_target: "DYNAMIC_DANA_TITIP",
-        },
-        {
-          kode: "A27",
-          pos_lama: "Piutang Guru & Karyawan",
-          coa_target: "112030102 - Piutang Pegawai",
-        },
-
-        // A28 (Penerimaan Lain-lain) dikosongkan
-        { kode: "A28", pos_lama: "Penerimaan Lain-lain", coa_target: "" },
-
-        {
-          kode: "B11",
-          pos_lama: "Mukafaah",
-          coa_target: "521010101 - Beban Mukafaah Markaz",
-        },
-        {
-          kode: "B12",
-          pos_lama: "Sekretariat",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B13",
-          pos_lama: "Pendidikan",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B14",
-          pos_lama: "Kesantrian",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B15",
-          pos_lama: "Bidang Umum",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B16",
-          pos_lama: "Konsumsi",
-          coa_target: "521010113 - Beban Belanja Dapur Markaz",
-        },
-        {
-          kode: "B17",
-          pos_lama: "Bidang Keuangan",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B18",
-          pos_lama: "Bidang Rumah Tangga",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B19",
-          pos_lama: "Bidang Usaha",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B110",
-          pos_lama: "Bidang Marhalah (MI, MTs dan MA)",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B111",
-          pos_lama: "Bea Tagihan Listrik",
-          coa_target: "521010107 - Beban Listrik-Air-Gas Markaz",
-        },
-        {
-          kode: "B112",
-          pos_lama: "Bea Telepon Dan Internet",
-          coa_target: "521010115 - Beban Telepon-HP Markaz",
-        },
-        {
-          kode: "B113",
-          pos_lama: "Bea Operasional Klinik",
-          coa_target: "522010104 - Beban Tunjangan Kesehatan",
-        },
-        {
-          kode: "B115",
-          pos_lama: "Uang Muka / Kas Bon Operasional Mahad",
-          coa_target: "113020102 - Uang Muka Markaz",
-        },
-        {
-          kode: "B116",
-          pos_lama: "Bea Rutin Lainnya ( Uang saku santri, Adm bank dll )",
-          coa_target: "",
-        },
-        {
-          kode: "B117",
-          pos_lama: "Hutang Laundry ke Mitra",
-          coa_target: "213010199 - Utang Jangka Pendek Lainnya",
-        },
-        {
-          kode: "B118",
-          pos_lama: "Bidang Khidmah",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B119",
-          pos_lama: "Kesantrian Putri",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B120",
-          pos_lama: "Bidang Multimedia",
-          coa_target: "521010110 - Beban Operasional Markaz",
-        },
-        {
-          kode: "B21",
-          pos_lama: "Pelaksanaan Dana Amanah Pembangunan",
-          coa_target: "122010102 - Bangunan",
-        },
-        {
-          kode: "B22",
-          pos_lama: "Pelaksanaan Acara",
-          coa_target: "521010126 - Beban Kegiatan-Program",
-        },
-        {
-          kode: "B23",
-          pos_lama: "Piutang Guru & Karyawan",
-          coa_target: "112030102 - Piutang Pegawai",
-        },
-        {
-          kode: "B24",
-          pos_lama: "Uang Muka / Kas Bon ( Tidak Rutin )",
-          coa_target: "113020102 - Uang Muka Markaz",
-        },
-        {
-          kode: "B29",
-          pos_lama: "Bea Tidak Rutin Lainnya",
-          coa_target: "",
-        },
-        {
-          kode: "B31",
-          pos_lama: "Beban Biaya Tahunan",
-          coa_target: "",
-        },
-      ];
-
       function appData() {
         return {
           isUploaded: false,
@@ -712,11 +477,15 @@
           selectedDate: "ALL",
           selectedKasBank: "ALL",
           searchQuery: "",
-          rules: DEFAULT_CONSTANTS,
+          // Rules sekarang diambil dari file eksternal pos_mapping.js
+          rules: typeof POS_MAPPING_RULES !== "undefined" ? POS_MAPPING_RULES : [],
           allData: [],
 
           initApp() {
             console.log("Alpine.js Initialized");
+            if (typeof determinePosBaru !== "function") {
+              console.warn("File pos_mapping.js tidak terdeteksi atau error.");
+            }
           },
 
           handleDrop(e) {
@@ -836,6 +605,9 @@
               )
                 return;
 
+              // Aplikasi ini khusus Kredit -> baris Debit (kredit <= 0) dibuang total
+              if (kredit <= 0) return;
+
               const kasBank = this.normalizeKasBank(rawKasBank, row);
 
               const isUangMuka =
@@ -851,16 +623,17 @@
               let posBaru = "";
               let hasMatch = false;
 
-              // Logika terpusat dialirkan ke mapToCOA()
+              // ========================================================
+              // MENGGUNAKAN FUNGSI DARI FILE EXTERNAL (pos_mapping.js)
+              // ========================================================
               if (isPenerimaanLain) {
                 posBaru = "";
                 hasMatch = false;
               } else if (isUangMuka && isNominalMinus) {
                 posBaru = "";
                 hasMatch = false;
-              } else {
-                posBaru = this.mapToCOA(
-                  kodeLama,
+              } else if (typeof determinePosBaru === "function") {
+                posBaru = determinePosBaru(
                   kasBank,
                   posLama,
                   uraian,
@@ -869,6 +642,10 @@
                   nama,
                 );
                 hasMatch = posBaru !== "" && posBaru !== posLama;
+              } else {
+                console.warn("File pos_mapping.js tidak terdeteksi atau error.");
+                posBaru = posLama;
+                hasMatch = false;
               }
 
               this.allData.push({
@@ -912,120 +689,6 @@
             }
 
             return str || "-";
-          },
-
-          mapToCOA(kode, kasBank, posLama, uraian, debet, kredit, nama = "") {
-            const pos = posLama.toLowerCase();
-            const ur = uraian.toLowerCase();
-            const kd = kode.toUpperCase();
-            const kb = kasBank.toLowerCase();
-            const nm = String(nama || "").toLowerCase();
-
-            const isUangMuka =
-              pos.includes("uang muka") ||
-              pos.includes("kas bon") ||
-              ["B115", "B24"].includes(kd);
-
-            // -------------------------------------------------------------
-            // 1. ATURAN BSI & MUAMALAT: BEBAN ADMINISTRASI BANK
-            // Saldo Bank Berkurang / Pengeluaran = KREDIT > 0
-            // -------------------------------------------------------------
-            const isBsiOrMuamalat =
-              kb.includes("bsi") || kb.includes("muamalat");
-            const isAdminUraian =
-              ur.includes("biaya admin") ||
-              ur.includes("adm bank") ||
-              ur.includes("administrasi") ||
-              ur.includes("admin");
-
-            if (isBsiOrMuamalat && isAdminUraian && kredit > 0) {
-              return "621010101 - Beban Administrasi Bank";
-            }
-
-            // -------------------------------------------------------------
-            // 2. ATURAN MUAMALAT: PENDAPATAN FEE VA BANK
-            // Saldo Bank Bertambah / Penerimaan = DEBET > 0
-            // -------------------------------------------------------------
-            if (kb.includes("muamalat") && isAdminUraian && debet > 0) {
-              return "611010103 - Pendapatan Fee VA Bank";
-            }
-
-            // -------------------------------------------------------------
-            // 3. ATURAN KHUSUS: Kas Kecil + Tabungan Santri
-            // -------------------------------------------------------------
-            if (
-              !isUangMuka &&
-              kb.includes("kas kecil") &&
-              ur.includes("tabungan siswa") &&
-              (nm.includes("aditya") || nm.includes("adiya"))
-            ) {
-              return "213010108 - Dana Titipan Tabungan Santri";
-            }
-
-            // ATURAN KHUSUS: Tabungan Siswa (Penerimaan/Umum)
-            if (ur.includes("tabungan siswa")) {
-              return "213010108 - Dana Titipan Tabungan Santri";
-            }
-
-            // ATURAN KHUSUS: Biaya Kegiatan
-            if (ur.includes("biaya kegiatan")) {
-              return "423010103 - Penerimaan Kegiatan-Program";
-            }
-
-            if (kd) {
-              const m = this.rules.find(
-                (r) => r.kode && r.kode.toUpperCase() === kd,
-              );
-              if (m) return this.resolveTarget(m.coa_target, ur, posLama);
-            }
-
-            if (pos) {
-              const m = this.rules.find(
-                (r) => r.pos_lama && pos.includes(r.pos_lama.toLowerCase()),
-              );
-              if (m) return this.resolveTarget(m.coa_target, ur, posLama);
-            }
-
-            if (pos.includes("uang tahunan"))
-              return this.processUangTahunan(ur);
-            if (pos.includes("dana titip") || pos.includes("tabungan"))
-              return this.processDanaTitip(ur);
-
-            return posLama;
-          },
-
-          resolveTarget(target, ur, fallbackPos) {
-            if (target === "DYNAMIC_UANG_TAHUNAN")
-              return this.processUangTahunan(ur);
-            if (target === "DYNAMIC_DANA_TITIP")
-              return this.processDanaTitip(ur);
-            if (target === "AYAT_SILANG") return fallbackPos;
-            return target;
-          },
-
-          processUangTahunan(ur) {
-            if (ur.includes("bangunan") || ur.includes("wakaf bangunan"))
-              return "421010103 - Pendapatan Pembangunan-DU PSB";
-            if (ur.includes("pendaftaran") || ur.includes("psb"))
-              return "421010102 - Pendapatan Pendaftaran PSB";
-            if (ur.includes("seragam") || ur.includes("perlengkapan"))
-              return "421010105 - Pendapatan Perlengkapan-DU PSB";
-            return "421010104 - Pendapatan Tahunan-DU PSB";
-          },
-
-          processDanaTitip(ur) {
-            if (ur.includes("pegawai"))
-              return "213010103 - Dana Titipan Tabungan Pegawai";
-            if (ur.includes("tabungan siswa"))
-              return "213010108 - Dana Titipan Tabungan Santri";
-            if (
-              ur.includes("santri") ||
-              ur.includes("siswa") ||
-              ur.includes("saku") ||
-              ur.includes("ekskul")
-            )
-              return "213010106 - Dana Titipan Santri";
-            return "213010108 - Dana Titipan Tabungan Santri";
           },
 
           get availableDates() {
