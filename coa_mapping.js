@@ -3,17 +3,10 @@
  * FILE: coa_mapping.js
  * PUSAT PENGATURAN MAPPING COA (CHART OF ACCOUNTS)
  * ======================================================================
- * 
- * ATURAN MAIN PENCARIAN & PRIORITAS:
- * 1. Sistem akan menggabungkan teks "Pos Penerimaan" & "Keterangan Item".
- * 2. Sistem mencari KATA KUNCI (keys) dari urutan PALING ATAS ke BAWAH.
- * 3. Pastikan 'keys' ditulis dengan HURUF KAPITAL.
- * ======================================================================
  */
 
 const COA_REVENUE_MAP = [
     { 
-        // SPP diprioritaskan di atas
         keys: ["SPP", "PONDOKAN", "IWS"], 
         coa: "421010101 - Pendapatan IWS (Infaq Wali-Santri/Murid)" 
     },
@@ -58,7 +51,7 @@ const COA_REVENUE_MAP = [
         coa: "112030102 - Piutang Pegawai" 
     },
     { 
-        keys: ["PENDAPATAN BIAYA ADMIN",], 
+        keys: ["PENDAPATAN BIAYA ADMIN"], 
         coa: "611010104 - Pendapatan Administrasi Bank" 
     },
     { 
@@ -81,29 +74,29 @@ const COA_REVENUE_MAP = [
         keys: ["XENDIT"], 
         coa: "213010199 - Utang Jangka Pendek Lainnya" 
     },
-
 ];
 
 /**
  * FUNGSI UTAMA PENENTUAN COA
- * Fungsi ini dipanggil dari index.html dengan membawa 3 parameter:
- * - posAsli : Kolom "POS PENERIMAAN"
- * - ketItem : Kolom "KETERANGAN ITEM" / "JENIS BIAYA"
- * - kategoriAkrual : Status (Tapel Sekarang / Lalu / Akan Datang)
  */
 function determineCOA(posAsli, ketItem, kategoriAkrual) {
-    // 1. ATURAN PENDAPATAN DITERIMA DI MUKA (Bayar di Awal)
-    if (kategoriAkrual === "TAPEL AKAN DATANG") {
-        return "213010190 - Pendapatan diterima Dimuka";
-    }
-    
-    // 2. GABUNGKAN TEKS POS DAN KETERANGAN (Untuk Tapel Sekarang / Tapel Lalu)
-    // Jika pos-nya "Lain-lain" tapi keterangannya "Bayar Seragam", maka akan terdeteksi "SERAGAM"
     const posText = String(posAsli).toUpperCase();
     const ketText = String(ketItem).toUpperCase();
-    const combinedSearchText = `${posText} ${ketText}`; // Digabungkan jadi 1 kalimat
+    const combinedSearchText = `${posText} ${ketText}`;
 
-    // Looping mencari kata kunci dari atas ke bawah
+    // 1. PENDAPATAN DITERIMA DI MUKA (Bulan Depan ATAU Tapel Mendatang)
+    if (kategoriAkrual === "TAPEL AKAN DATANG" || kategoriAkrual === "BULAN DEPAN") {
+        return "213010190 - Pendapatan diterima Dimuka";
+    }
+
+    // 2. PEMBAYARAN TUNGGAKAN / PELUNASAN PIUTANG (Bulan Lalu ATAU Tapel Lalu)
+    if (kategoriAkrual === "TAPEL LALU" || kategoriAkrual === "BULAN LALU") {
+        if (combinedSearchText.includes("SPP") || combinedSearchText.includes("PONDOKAN") || combinedSearchText.includes("IWS")) {
+            return "112010101 - Piutang SPP";
+        }
+    }
+
+    // 3. PENDAPATAN SEKARANG / REGULER
     for (let rule of COA_REVENUE_MAP) {
         for (let key of rule.keys) {
             if (combinedSearchText.includes(key)) {
@@ -112,6 +105,6 @@ function determineCOA(posAsli, ketItem, kategoriAkrual) {
         }
     }
     
-    // 3. FALLBACK DEFAULT (Jika tidak ada satupun kata yang cocok)
+    // 4. FALLBACK DEFAULT
     return "423010105 - Pendapatan Lain";
 }

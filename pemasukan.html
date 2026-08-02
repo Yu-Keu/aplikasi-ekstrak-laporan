@@ -22,6 +22,7 @@
       [x-cloak] {
         display: none !important;
       }
+
       body {
         font-family: "Inter", sans-serif;
       }
@@ -61,7 +62,6 @@
       <div
         class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4"
       >
-        <!-- Emblem Logo -->
         <div class="flex items-center space-x-3">
           <div
             class="w-11 h-11 bg-[#0a2718] rounded-xl border border-[#2a6d4b] flex items-center justify-center p-1 shadow-md relative overflow-hidden"
@@ -98,7 +98,6 @@
           </div>
         </div>
 
-        <!-- Header Buttons -->
         <div class="flex items-center space-x-3">
           <a
             href="index.html"
@@ -171,7 +170,6 @@
           class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4"
         >
           <div class="flex flex-wrap items-center gap-3">
-            <!-- Select Filter Tanggal -->
             <div class="flex items-center space-x-2">
               <label class="text-xs font-bold text-slate-700">Tanggal:</label>
               <select
@@ -184,7 +182,6 @@
                 </template>
               </select>
             </div>
-            <!-- Select Filter Bank -->
             <div class="flex items-center space-x-2">
               <label class="text-xs font-bold text-slate-700">Bank/Kas:</label>
               <select
@@ -197,7 +194,6 @@
                 </template>
               </select>
             </div>
-            <!-- Select Filter COA -->
             <div class="flex items-center space-x-2">
               <label class="text-xs font-bold text-slate-700">COA Baru:</label>
               <select
@@ -212,7 +208,6 @@
             </div>
           </div>
 
-          <!-- Search Bar & Reset -->
           <div class="flex items-center space-x-3">
             <input
               type="text"
@@ -318,14 +313,15 @@
                     ></td>
 
                     <!-- Status Akrual -->
+                    <!-- Status Akrual Badge -->
                     <td class="px-3 py-2.5 text-center">
                       <span
                         class="px-1.5 py-0.5 rounded font-bold text-[8.5px] uppercase tracking-wider"
                         :class="{
-                               'bg-emerald-100 text-emerald-800': item.kategori === 'TAPEL SEKARANG',
-                               'bg-amber-100 text-amber-800': item.kategori === 'TAPEL AKAN DATANG',
-                               'bg-blue-100 text-blue-800': item.kategori === 'TAPEL LALU'
-                            }"
+                          'bg-emerald-100 text-emerald-800': item.kategori === 'TAPEL SEKARANG',
+                          'bg-amber-100 text-amber-800': item.kategori === 'TAPEL AKAN DATANG' || item.kategori === 'BULAN DEPAN',
+                          'bg-blue-100 text-blue-800': item.kategori === 'TAPEL LALU' || item.kategori === 'BULAN LALU'
+                        }"
                         x-text="item.kategori"
                       >
                       </span>
@@ -345,7 +341,6 @@
                       x-text="formatRupiah(item.totalPenerimaan)"
                     ></td>
 
-                    <!-- Tombol Action -->
                     <td class="px-3 py-2.5 text-center">
                       <template x-if="!item.selected">
                         <button
@@ -371,7 +366,6 @@
                 </template>
               </tbody>
 
-              <!-- Baris Total Footer -->
               <tfoot class="bg-slate-50" x-show="filteredData.length > 0">
                 <tr>
                   <td
@@ -397,106 +391,7 @@
       </div>
     </main>
 
-    <!-- Modal Info Rules Akrual & COA -->
-    <div
-      x-show="showModal"
-      class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      x-cloak
-    >
-      <div
-        @click.away="showModal = false"
-        class="bg-white rounded-2xl max-w-3xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden max-h-[85vh]"
-      >
-        <div
-          class="bg-[#113f28] text-white p-4 flex justify-between items-center"
-        >
-          <h3 class="font-bold text-sm">Informasi Logika Sistem</h3>
-          <button
-            @click="showModal = false"
-            class="text-emerald-200 hover:text-white font-bold text-xl"
-          >
-            &times;
-          </button>
-        </div>
-
-        <div class="p-5 overflow-y-auto text-sm space-y-5 text-slate-700">
-          <div>
-            <h4 class="font-bold text-slate-800 mb-2 border-b pb-1">
-              1. Aturan Dasar Akrual (Tapel)
-            </h4>
-            <ul class="space-y-2">
-              <li class="flex items-start gap-2">
-                <span
-                  class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold text-[10px] mt-0.5 w-32 text-center"
-                  >TAPEL AKAN DATANG</span
-                >
-                <span
-                  >Otomatis di-map ke
-                  <b>213010190 - Pendapatan diterima Dimuka</b> (Utang / Bayar
-                  lebih awal).</span
-                >
-              </li>
-              <li class="flex items-start gap-2">
-                <span
-                  class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold text-[10px] mt-0.5 w-32 text-center"
-                  >TAPEL LALU</span
-                >
-                <span
-                  >Di-map ke COA Pendapatan (Sama seperti Tapel Sekarang).
-                  <br /><span class="text-xs text-slate-500"
-                    >Meskipun ditandai Tapel Lalu, COA-nya kini diarahkan ke
-                    Pendapatan Revenue.</span
-                  ></span
-                >
-              </li>
-              <li class="flex items-start gap-2">
-                <span
-                  class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold text-[10px] mt-0.5 w-32 text-center"
-                  >TAPEL SEKARANG</span
-                >
-                <span
-                  >Di-map ke COA Pendapatan/Revenue berdasarkan nama Pos dan
-                  Keterangan Item secara otomatis.</span
-                >
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-800 mb-2 border-b pb-1">
-              2. Mapping Kas / Bank (Debit)
-            </h4>
-            <p class="text-xs mb-2">Berdasarkan Kolom "Metode Pembayaran":</p>
-            <ul class="space-y-1 list-disc ml-5 text-xs font-mono">
-              <li>MENGANDUNG KATA "BSI" -> BSI</li>
-              <li>MENGANDUNG KATA "MUAMALAT" -> Muamalat</li>
-              <li>LAINNYA / TUNAI / KOSONG -> Kas Besar</li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-800 mb-2 border-b pb-1">
-              3. Cara Mengubah COA
-            </h4>
-            <p class="text-xs mb-2">
-              Anda bisa menambah atau menyesuaikan kata kunci pencarian (baik
-              untuk Pos Penerimaan maupun Keterangan) dan nama COA langsung
-              melalui file <b>coa_mapping.js</b> yang ada di dalam folder yang
-              sama dengan aplikasi ini.
-            </p>
-          </div>
-        </div>
-        <div class="p-3 bg-slate-50 border-t text-right">
-          <button
-            @click="showModal = false"
-            class="bg-slate-800 text-white text-xs px-4 py-2 rounded-xl font-medium transition hover:bg-slate-700"
-          >
-            Tutup
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- MENGAMBIL LOGIKA DARI FILE EXTERNAL -->
-    <!-- PASTIKAN FILE INI BERADA DI FOLDER YANG SAMA -->
     <script src="coa_mapping.js"></script>
 
     <script>
@@ -611,11 +506,10 @@
               const penerimaan = this.parseIndonesianNumber(penerimaanRaw);
               if (penerimaan === 0) continue;
 
-              // MENENTUKAN BANK / KAS (Metode Pembayaran)
               const rawMetode = String(row[colMetode] || "")
                 .toUpperCase()
                 .trim();
-              let kasBank = "Kas Besar"; // Default Tunai
+              let kasBank = "Kas Besar";
               if (rawMetode.includes("BSI")) kasBank = "BSI";
               else if (rawMetode.includes("MUAMALAT")) kasBank = "Muamalat";
               else if (rawMetode.includes("KAS KECIL")) kasBank = "Kas Kecil";
@@ -630,22 +524,21 @@
               ).trim();
               const ketSingkat = this.extractDetail(ketItem);
 
-              const kategori = this.getClassifyAccrual(transTapel, targetTapel);
+              // ========================================================
+              // MENGGUNAKAN DUKUNGAN LOGIKA BULANAN SPP (BULAN+TAHUN)
+              // ========================================================
+              const kategori = this.getClassifyAccrual(
+                transTapel,
+                targetTapel,
+                dateObj,
+                ketItem,
+              );
 
-              // ========================================================
-              // MENGGUNAKAN FUNGSI DARI FILE EXTERNAL (coa_mapping.js)
-              // Parameter sekarang membawa 'ketItem' juga!
-              // ========================================================
-              let coaBaru = "423010105 - Pendapatan Lain"; // Fallback awal
+              let coaBaru = "423010105 - Pendapatan Lain";
               if (typeof determineCOA === "function") {
                 coaBaru = determineCOA(posPenerimaan, ketItem, kategori);
-              } else {
-                console.warn(
-                  "File coa_mapping.js tidak terdeteksi atau error.",
-                );
               }
 
-              // Kunci Agregasi Unique
               const groupKey = `${tglFormatted}___${kasBank}___${posPenerimaan}___${targetTapel}___${coaBaru}`;
 
               if (!groups[groupKey]) {
@@ -675,7 +568,6 @@
 
             this.allData = Object.values(groups)
               .map((g) => {
-                // PEMBUATAN URAIAN JURNAL YANG PROFESIONAL
                 let extractedDetails = Array.from(g.keteranganSet)
                   .filter((x) => x !== "-")
                   .join(", ");
@@ -704,9 +596,11 @@
                 };
               })
               .sort((a, b) => {
-                const posCompare = a.posPenerimaan.localeCompare(b.posPenerimaan);
+                const posCompare = a.posPenerimaan.localeCompare(
+                  b.posPenerimaan,
+                );
                 if (posCompare !== 0) return posCompare;
-                return a.dateObj - b.dateObj; // tie-breaker biar rapi per tanggal
+                return a.dateObj - b.dateObj;
               });
 
             if (this.allData.length === 0) {
@@ -714,13 +608,8 @@
             }
           },
 
-          // ==============================
-          // PAYLOAD BUILDER & COPIER
-          // ==============================
           handleRowAction(item) {
             const tglSlash = item.tglFormatted.replace(/-/g, "/");
-
-            // Urutan Payload: TGL | KETERANGAN | BANK_NAME | BANK_TYPE(DEBIT) | POS_NAME(COA) | POS_TYPE(KREDIT) | NOMINAL
             const payload = `${tglSlash}|${item.uraianJurnal}|${item.kasBank}|DEBIT|${item.coaBaru}|KREDIT|${item.totalPenerimaan}`;
 
             navigator.clipboard
@@ -729,12 +618,9 @@
                 alert("Berhasil disalin ke Clipboard:\n\n" + payload);
               })
               .catch((err) => {
-                alert(
-                  "Gagal menyalin data. Izin clipboard mungkin diblokir browser.",
-                );
+                alert("Gagal menyalin data.");
               });
           },
-          // ==============================
 
           parseAnyDate(val) {
             if (!val) return null;
@@ -778,8 +664,38 @@
             return month >= 7 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
           },
 
-          getClassifyAccrual(transTapel, targetTapel) {
+          // LOGIKA KLASIFIKASI AKRUAL (SPP BULANAN + TAHUNAN)
+          getClassifyAccrual(transTapel, targetTapel, dateObj, ketItem) {
             if (!transTapel || !targetTapel) return "TIDAK VALID";
+
+            const sppMonthInfo = this.parseSppMonthAndYear(
+              ketItem,
+              targetTapel,
+            );
+
+            if (sppMonthInfo && dateObj) {
+              const transYear = dateObj.getFullYear();
+              const transMonth = dateObj.getMonth() + 1;
+
+              const transIndex = transYear * 12 + transMonth;
+              const targetIndex = sppMonthInfo.year * 12 + sppMonthInfo.month;
+
+              if (targetIndex === transIndex) return "TAPEL SEKARANG";
+
+              if (targetIndex > transIndex) {
+                // Jika Tapel-nya sama -> BULAN DEPAN, jika Tapel beda -> TAPEL AKAN DATANG
+                return transTapel === targetTapel
+                  ? "BULAN DEPAN"
+                  : "TAPEL AKAN DATANG";
+              }
+
+              if (targetIndex < transIndex) {
+                // Jika Tapel-nya sama -> BULAN LALU, jika Tapel beda -> TAPEL LALU
+                return transTapel === targetTapel ? "BULAN LALU" : "TAPEL LALU";
+              }
+            }
+
+            // Fallback Tahunan jika bukan SPP Bulanan
             const transYear = parseInt(transTapel.split("/")[0]);
             const targetYear = parseInt(
               String(targetTapel).trim().split("/")[0],
@@ -789,6 +705,55 @@
             if (targetYear === transYear) return "TAPEL SEKARANG";
             if (targetYear > transYear) return "TAPEL AKAN DATANG";
             return "TAPEL LALU";
+          },
+          // FUNGSI UTILITY: Ekstrak Bulan & Tahun SPP
+          parseSppMonthAndYear(ketItem, targetTapel) {
+            if (!ketItem) return null;
+            const str = String(ketItem).toUpperCase();
+
+            const monthNames = {
+              JANUARI: 1,
+              FEBRUARI: 2,
+              MARET: 3,
+              APRIL: 4,
+              MEI: 5,
+              JUNI: 6,
+              JULI: 7,
+              AGUSTUS: 8,
+              SEPTEMBER: 9,
+              OKTOBER: 10,
+              NOVEMBER: 11,
+              DESEMBER: 12,
+            };
+
+            let foundMonth = null;
+            for (const [mName, mNum] of Object.entries(monthNames)) {
+              if (str.includes(mName)) {
+                foundMonth = mNum;
+                break;
+              }
+            }
+
+            if (!foundMonth) return null;
+
+            // Penentuan Tahun Kalender berdasarkan Tapel Pesantren (contoh: 2025/2026)
+            // Juli-Desember -> Tahun Pertama (2025)
+            // Januari-Juni -> Tahun Kedua (2026)
+            const tapelMatch = String(targetTapel).match(/(\d{4})\/(\d{4})/);
+            let year = null;
+
+            if (tapelMatch) {
+              const y1 = parseInt(tapelMatch[1]);
+              const y2 = parseInt(tapelMatch[2]);
+              year = foundMonth >= 7 ? y1 : y2;
+            } else {
+              const yrMatch = str.match(/\b(20\d{2})\b/);
+              if (yrMatch) year = parseInt(yrMatch[1]);
+            }
+
+            if (!year) return null;
+
+            return { month: foundMonth, year: year };
           },
 
           extractDetail(str) {
