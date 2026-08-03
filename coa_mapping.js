@@ -78,6 +78,10 @@ const COA_REVENUE_MAP = [
         keys: ["XENDIT"], 
         coa: "213010199 - Utang Jangka Pendek Lainnya" 
     },
+    { 
+        keys: ["TITIP TRANSFER"], 
+        coa: "213010199 - Utang Jangka Pendek Lainnya" 
+    },
 ];
 
 /**
