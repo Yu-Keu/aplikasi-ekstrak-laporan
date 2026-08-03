@@ -45,11 +45,12 @@ const POS_MAPPING_RULES = [
       "BIDANG USAHA", "BIDANG MARHALAH", "BIDANG KHIDMAH", "BIDANG MULTIMEDIA"
     ], coa: "521010110 - Beban Operasional Markaz" },
 
-  // --- FALLBACK KOSONG (sengaja tidak dipetakan otomatis) ---
-  { keys: ["PENERIMAAN LAIN-LAIN", "BEA RUTIN LAINNYA", "BEBAN BIAYA TAHUNAN"], coa: "" },
   { keys: ["MUKAFAAH"], coa: "521010101 - Beban Mukafaah Markaz" },
   { keys: ["REFUND DANA GH"], coa: "213010199 - Utang Jangka Pendek Lainnya" },
   { keys: ["PENGAMBILAN UANG SAKU"], coa: "213010108 - Dana Titipan Tabungan Santri" },
+  { keys: ["TITIP TRANSFER"], coa: "213010199 - Utang Jangka Pendek Lainnya" },
+  // --- FALLBACK KOSONG (sengaja tidak dipetakan otomatis) ---
+  { keys: ["PENERIMAAN LAIN-LAIN", "BEA RUTIN LAINNYA", "BEBAN BIAYA TAHUNAN"], coa: "" },
 ];
 
 /**
