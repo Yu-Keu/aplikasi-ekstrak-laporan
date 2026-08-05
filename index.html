@@ -30,10 +30,30 @@
   </head>
 
   <body
-    class="bg-slate-50 text-slate-800 min-h-screen flex flex-col"
+    class="bg-slate-50 text-slate-800 min-h-screen flex flex-col relative"
     x-data="appData()"
     x-init="initApp()"
   >
+    <!-- Toast Notification Melayang -->
+    <div
+      x-show="toast.show"
+      x-transition:enter="transition ease-out duration-300"
+      x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+      x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+      class="fixed bottom-5 right-5 z-50 bg-slate-900/90 text-white text-xs px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md border border-slate-700/50 flex items-center space-x-2.5"
+      x-cloak
+    >
+      <div class="p-1 bg-emerald-500/20 text-emerald-400 rounded-full">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+      <span x-text="toast.message" class="font-medium"></span>
+    </div>
+
     <!-- Loading State Overlay -->
     <div
       x-show="isLoading"
@@ -367,9 +387,10 @@
                       >
                         <button
                           @click="handleRowAction(item)"
-                          class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-[11px] rounded-lg shadow-sm transition"
+                          :class="item.copied ? 'bg-emerald-600 text-white' : 'bg-emerald-700 hover:bg-emerald-800 text-white'"
+                          class="px-3 py-1 font-medium text-[11px] rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center min-w-[70px] mx-auto"
                         >
-                          Aksi
+                          <span x-text="item.copied ? '✓ Copied' : 'Aksi'"></span>
                         </button>
                       </template>
                       <template
@@ -462,7 +483,6 @@
     </footer>
 
     <!-- MENGAMBIL LOGIKA MAPPING DARI FILE EXTERNAL -->
-    <!-- PASTIKAN FILE INI BERADA DI FOLDER YANG SAMA DENGAN index.html -->
     <script src="pos_mapping.js"></script>
 
     <!-- Script Component -->
@@ -477,15 +497,30 @@
           selectedDate: "ALL",
           selectedKasBank: "ALL",
           searchQuery: "",
-          // Rules sekarang diambil dari file eksternal pos_mapping.js
           rules: typeof POS_MAPPING_RULES !== "undefined" ? POS_MAPPING_RULES : [],
           allData: [],
+
+          // State Toast Notification
+          toast: {
+            show: false,
+            message: "",
+            timeout: null,
+          },
 
           initApp() {
             console.log("Alpine.js Initialized");
             if (typeof determinePosBaru !== "function") {
               console.warn("File pos_mapping.js tidak terdeteksi atau error.");
             }
+          },
+
+          showNotification(msg) {
+            if (this.toast.timeout) clearTimeout(this.toast.timeout);
+            this.toast.message = msg;
+            this.toast.show = true;
+            this.toast.timeout = setTimeout(() => {
+              this.toast.show = false;
+            }, 2500);
           },
 
           handleDrop(e) {
@@ -605,7 +640,6 @@
               )
                 return;
 
-              // Aplikasi ini khusus Kredit -> baris Debit (kredit <= 0) dibuang total
               if (kredit <= 0) return;
 
               const kasBank = this.normalizeKasBank(rawKasBank, row);
@@ -623,9 +657,6 @@
               let posBaru = "";
               let hasMatch = false;
 
-              // ========================================================
-              // MENGGUNAKAN FUNGSI DARI FILE EXTERNAL (pos_mapping.js)
-              // ========================================================
               if (isPenerimaanLain) {
                 posBaru = "";
                 hasMatch = false;
@@ -661,6 +692,7 @@
                 kredit,
                 hasMatch,
                 selected: false,
+                copied: false, // Flag tersalin per baris
               });
             });
           },
@@ -774,25 +806,33 @@
             let posType = "KREDIT";
             let amount = 0;
 
-            // --- REVERSED LOGIC ---
             if (item.debet > 0) {
-              // Excel Debet -> Bank is DEBIT, Pos is KREDIT
               bankType = "DEBIT";
               posType = "KREDIT";
               amount = item.debet;
             } else if (item.kredit > 0) {
-              // Excel Kredit -> Bank is KREDIT, Pos is DEBIT
               bankType = "KREDIT";
               posType = "DEBIT";
               amount = item.kredit;
             }
 
-            // Payload: TGL|KETERANGAN|BANK_NAME|BANK_TYPE|POS_NAME|POS_TYPE|AMOUNT
             const ahkPayload = `${tglFormat}|${keterangan}|${bankName}|${bankType}|${posName}|${posType}|${amount}`;
 
-            navigator.clipboard.writeText(ahkPayload).then(() => {
-              alert("AHK Payload Copied:\n" + ahkPayload);
-            });
+            navigator.clipboard
+              .writeText(ahkPayload)
+              .then(() => {
+                // Tanda visual pada tombol
+                item.copied = true;
+                setTimeout(() => {
+                  item.copied = false;
+                }, 2000);
+
+                // Tampilkan notifikasi melayang
+                this.showNotification("AHK Payload berhasil disalin ke clipboard!");
+              })
+              .catch((err) => {
+                this.showNotification("Gagal menyalin data.");
+              });
           },
 
           parseIndonesianNumber(val) {
