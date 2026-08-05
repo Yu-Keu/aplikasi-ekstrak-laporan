@@ -30,10 +30,30 @@
   </head>
 
   <body
-    class="bg-slate-50 text-slate-800 min-h-screen flex flex-col"
+    class="bg-slate-50 text-slate-800 min-h-screen flex flex-col relative"
     x-data="appData()"
     x-init="initApp()"
   >
+    <!-- Toast Notification Melayang -->
+    <div
+      x-show="toast.show"
+      x-transition:enter="transition ease-out duration-300"
+      x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+      x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+      class="fixed bottom-5 right-5 z-50 bg-slate-900/90 text-white text-xs px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md border border-slate-700/50 flex items-center space-x-2.5"
+      x-cloak
+    >
+      <div class="p-1 bg-emerald-500/20 text-emerald-400 rounded-full">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+      <span x-text="toast.message" class="font-medium"></span>
+    </div>
+
     <!-- Loading State Overlay -->
     <div
       x-show="isLoading"
@@ -312,7 +332,6 @@
                       x-text="item.coaBaru"
                     ></td>
 
-                    <!-- Status Akrual -->
                     <!-- Status Akrual Badge -->
                     <td class="px-3 py-2.5 text-center">
                       <span
@@ -345,9 +364,10 @@
                       <template x-if="!item.selected">
                         <button
                           @click="handleRowAction(item)"
-                          class="px-3 py-1 bg-[#113f28] hover:bg-emerald-800 text-white font-medium text-[10px] rounded-lg shadow-sm transition"
+                          :class="item.copied ? 'bg-emerald-600 text-white' : 'bg-[#113f28] hover:bg-emerald-800 text-white'"
+                          class="px-3 py-1 font-medium text-[10px] rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center min-w-[85px] mx-auto"
                         >
-                          Copy Payload
+                          <span x-text="item.copied ? '✓ Copied' : 'Copy Payload'"></span>
                         </button>
                       </template>
                       <template x-if="item.selected">
@@ -409,8 +429,25 @@
 
           allData: [],
 
+          // State Toast Notification
+          toast: {
+            show: false,
+            message: "",
+            timeout: null,
+          },
+
           initApp() {
             console.log("Dashboard COA & Payload - Alpine.js Ready");
+          },
+
+          // Helper Menampilkan Toast
+          showNotification(msg) {
+            if (this.toast.timeout) clearTimeout(this.toast.timeout);
+            this.toast.message = msg;
+            this.toast.show = true;
+            this.toast.timeout = setTimeout(() => {
+              this.toast.show = false;
+            }, 2500);
           },
 
           handleDrop(e) {
@@ -524,9 +561,6 @@
               ).trim();
               const ketSingkat = this.extractDetail(ketItem);
 
-              // ========================================================
-              // MENGGUNAKAN DUKUNGAN LOGIKA BULANAN SPP (BULAN+TAHUN)
-              // ========================================================
               const kategori = this.getClassifyAccrual(
                 transTapel,
                 targetTapel,
@@ -593,6 +627,7 @@
                   totalPenerimaan: g.totalPenerimaan,
                   uraianJurnal: uraianFinal,
                   selected: false,
+                  copied: false, // Flag status tersalin per baris
                 };
               })
               .sort((a, b) => {
@@ -608,6 +643,7 @@
             }
           },
 
+          // Penanganan Salin tanpa alert()
           handleRowAction(item) {
             const tglSlash = item.tglFormatted.replace(/-/g, "/");
             const payload = `${tglSlash}|${item.uraianJurnal}|${item.kasBank}|DEBIT|${item.coaBaru}|KREDIT|${item.totalPenerimaan}`;
@@ -615,10 +651,17 @@
             navigator.clipboard
               .writeText(payload)
               .then(() => {
-                alert("Berhasil disalin ke Clipboard:\n\n" + payload);
+                // Tanda visual pada tombol
+                item.copied = true;
+                setTimeout(() => {
+                  item.copied = false;
+                }, 2000);
+
+                // Tampilkan notifikasi melayang
+                this.showNotification("Payload berhasil disalin ke clipboard!");
               })
               .catch((err) => {
-                alert("Gagal menyalin data.");
+                this.showNotification("Gagal menyalin data.");
               });
           },
 
@@ -664,7 +707,6 @@
             return month >= 7 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
           },
 
-          // LOGIKA KLASIFIKASI AKRUAL (SPP BULANAN + TAHUNAN)
           getClassifyAccrual(transTapel, targetTapel, dateObj, ketItem) {
             if (!transTapel || !targetTapel) return "TIDAK VALID";
 
@@ -683,19 +725,16 @@
               if (targetIndex === transIndex) return "TAPEL SEKARANG";
 
               if (targetIndex > transIndex) {
-                // Jika Tapel-nya sama -> BULAN DEPAN, jika Tapel beda -> TAPEL AKAN DATANG
                 return transTapel === targetTapel
                   ? "BULAN DEPAN"
                   : "TAPEL AKAN DATANG";
               }
 
               if (targetIndex < transIndex) {
-                // Jika Tapel-nya sama -> BULAN LALU, jika Tapel beda -> TAPEL LALU
                 return transTapel === targetTapel ? "BULAN LALU" : "TAPEL LALU";
               }
             }
 
-            // Fallback Tahunan jika bukan SPP Bulanan
             const transYear = parseInt(transTapel.split("/")[0]);
             const targetYear = parseInt(
               String(targetTapel).trim().split("/")[0],
@@ -706,7 +745,7 @@
             if (targetYear > transYear) return "TAPEL AKAN DATANG";
             return "TAPEL LALU";
           },
-          // FUNGSI UTILITY: Ekstrak Bulan & Tahun SPP
+
           parseSppMonthAndYear(ketItem, targetTapel) {
             if (!ketItem) return null;
             const str = String(ketItem).toUpperCase();
@@ -736,9 +775,6 @@
 
             if (!foundMonth) return null;
 
-            // Penentuan Tahun Kalender berdasarkan Tapel Pesantren (contoh: 2025/2026)
-            // Juli-Desember -> Tahun Pertama (2025)
-            // Januari-Juni -> Tahun Kedua (2026)
             const tapelMatch = String(targetTapel).match(/(\d{4})\/(\d{4})/);
             let year = null;
 
