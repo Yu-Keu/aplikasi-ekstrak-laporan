@@ -1,6 +1,6 @@
 /**
  * ======================================================================
- * FILE: pos_mapping.js
+ * FILE: pengeluaran_mapping.js
  * PUSAT PENGATURAN MAPPING POS LAMA -> COA BARU (Dashboard Jurnal)
  * INI KHUSUS UNTUK PENGELUARAN
  * ======================================================================

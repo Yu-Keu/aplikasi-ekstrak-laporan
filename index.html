@@ -266,6 +266,13 @@
               class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs w-56 focus:outline-emerald-600"
             />
             <button
+              @click="exportToExcel()"
+              class="text-xs text-emerald-700 hover:text-white border border-emerald-500 hover:bg-emerald-600 px-3 py-1.5 rounded-xl font-medium transition shadow-sm flex items-center space-x-1"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Download Excel</span>
+            </button>
+            <button
               @click="resetFile()"
               class="text-xs text-rose-600 hover:text-rose-800 border border-rose-200 hover:bg-rose-50 px-3 py-1.5 rounded-xl font-medium transition"
             >
@@ -483,7 +490,8 @@
     </footer>
 
     <!-- MENGAMBIL LOGIKA MAPPING DARI FILE EXTERNAL -->
-    <script src="pos_mapping.js"></script>
+    <script src="export_pengeluaran.js"></script>
+    <script src="pengeluaran_mapping.js"></script>
 
     <!-- Script Component -->
     <script>
@@ -510,7 +518,7 @@
           initApp() {
             console.log("Alpine.js Initialized");
             if (typeof determinePosBaru !== "function") {
-              console.warn("File pos_mapping.js tidak terdeteksi atau error.");
+              console.warn("File pengeluaran_mapping.js tidak terdeteksi atau error.");
             }
           },
 
@@ -640,8 +648,6 @@
               )
                 return;
 
-              if (kredit <= 0) return;
-
               const kasBank = this.normalizeKasBank(rawKasBank, row);
 
               const isUangMuka =
@@ -674,7 +680,7 @@
                 );
                 hasMatch = posBaru !== "" && posBaru !== posLama;
               } else {
-                console.warn("File pos_mapping.js tidak terdeteksi atau error.");
+                console.warn("File pengeluaran_mapping.js tidak terdeteksi atau error.");
                 posBaru = posLama;
                 hasMatch = false;
               }
@@ -783,6 +789,15 @@
             this.selectedDate = "ALL";
             this.selectedKasBank = "ALL";
             this.searchQuery = "";
+          },
+
+          exportToExcel() {
+            if (typeof downloadExcelJurnalPengeluaran === "function") {
+              downloadExcelJurnalPengeluaran(this.filteredData);
+              this.showNotification("Excel Pengeluaran sedang diunduh...");
+            } else {
+              alert("Gagal mengunduh! File export_excel_pengeluaran.js tidak ditemukan.");
+            }
           },
 
           handleRowAction(item) {
