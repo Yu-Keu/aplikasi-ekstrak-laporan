@@ -7,7 +7,6 @@ function downloadExcelJurnalPengeluaran(filteredData) {
     }
 
     // 1. URUTKAN DATA BERDASARKAN TANGGAL (Kronologis)
-    // Di pengeluaran, format tanggal adalah YYYY-MM-DD, sehingga bisa disort secara abjad (string)
     const sortedData = [...filteredData].sort((a, b) => {
         const dateA = a.tanggal || "";
         const dateB = b.tanggal || "";
@@ -49,7 +48,7 @@ function downloadExcelJurnalPengeluaran(filteredData) {
         return tglStr;
     }
 
-    // 3. Mapping Hardcode Kas/Bank (Sesuai normalisasi di HTML Pengeluaran)
+    // 3. Mapping Hardcode Kas/Bank
     const bankMapping = {
         "Kas Kecil":      { kode: "111010201", nama: "Kas Kecil Mahad Ibnu Taimiyah" },
         "Kas Besar":      { kode: "111010202", nama: "Kas Besar Mahad Ibnu Taimiyah" },
@@ -57,58 +56,109 @@ function downloadExcelJurnalPengeluaran(filteredData) {
         "Bank Muamalat":  { kode: "111020202", nama: "Muamalat" }
     };
 
+    // Set untuk melacak ID Group LPJ mana saja yang sudah diproses agar tidak ganda
+    const processedGroups = new Set();
+
     // 4. Looping Eksekusi Baris
     sortedData.forEach(item => {
         
-        // Ambil nominal dari item.kredit (atau item.debet jika kredit 0)
-        const rawNominal = (item.kredit !== 0) ? item.kredit : item.debet;
-        const nominal = Math.abs(rawNominal);
-        
-        const isMinus = rawNominal < 0;
-        
-        const akunBank = bankMapping[item.kasBank] ? bankMapping[item.kasBank] : splitAkun(item.kasBank);
-        
-        // Jika COA barunya kosong (belum dimapping), beri tanda
-        const coaTeks = item.posBaru ? item.posBaru : "(COA BELUM DITENTUKAN)";
-        const akunCOA = splitAkun(coaTeks);
-        
-        const tgl = formatTglExcel(item.tanggal);
-        const uraian = item.uraian || "-";
+        // ===============================================================
+        // SKENARIO A: TRANSAKSI TUNGGAL (Tidak Diikat / Normal)
+        // ===============================================================
+        if (!item.groupId) {
+            const rawNominal = (item.kredit !== 0) ? item.kredit : item.debet;
+            const nominal = Math.abs(rawNominal);
+            const isMinus = rawNominal < 0;
+            
+            const akunBank = bankMapping[item.kasBank] ? bankMapping[item.kasBank] : splitAkun(item.kasBank);
+            const coaTeks = item.posBaru ? item.posBaru : "(COA BELUM DITENTUKAN)";
+            const akunCOA = splitAkun(coaTeks);
+            
+            const tgl = formatTglExcel(item.tanggal);
+            const uraian = item.uraian || "-";
 
-        // TRANSAKSI NORMAL (Pengeluaran Positif)
-        if (!isMinus) {
-            // Baris 1: COA PENGELUARAN di DEBIT
-            ws_data.push([
-                tgl, uraian, 
-                akunCOA.kode, akunCOA.nama, "DEBIT", nominal, 0
-            ]);
-
-            // Baris 2: BANK / KAS di KREDIT (Uang Keluar)
-            ws_data.push([
-                tgl, uraian, 
-                akunBank.kode, akunBank.nama, "KREDIT", 0, nominal
-            ]);
+            if (!isMinus) {
+                // Pengeluaran Normal
+                ws_data.push([tgl, uraian, akunCOA.kode, akunCOA.nama, "DEBIT", nominal, 0]);
+                ws_data.push([tgl, uraian, akunBank.kode, akunBank.nama, "KREDIT", 0, nominal]);
+            } else {
+                // Transaksi Minus / Koreksi
+                ws_data.push([tgl, uraian + " (Koreksi)", akunBank.kode, akunBank.nama, "DEBIT", nominal, 0]);
+                ws_data.push([tgl, uraian + " (Koreksi)", akunCOA.kode, akunCOA.nama, "KREDIT", 0, nominal]);
+            }
         } 
-        // TRANSAKSI KOREKSI (Pengeluaran Minus)
+        // ===============================================================
+        // SKENARIO B: TRANSAKSI MAJEMUK (LPJ Kasbon yang Diikat)
+        // ===============================================================
         else {
-            // Baris 1: BANK / KAS pindah ke DEBIT (Uang Masuk/Kembali)
-            ws_data.push([
-                tgl, uraian + " (Koreksi)", 
-                akunBank.kode, akunBank.nama, "DEBIT", nominal, 0
-            ]);
+            // Jika grup ini sudah diproses di putaran sebelumnya, lewati
+            if (processedGroups.has(item.groupId)) return; 
+            processedGroups.add(item.groupId);
 
-            // Baris 2: COA PENGELUARAN pindah ke KREDIT
-            ws_data.push([
-                tgl, uraian + " (Koreksi)", 
-                akunCOA.kode, akunCOA.nama, "KREDIT", 0, nominal
-            ]);
+            // Ambil semua baris yang terikat di Grup yang sama
+            const groupItems = sortedData.filter(x => x.groupId === item.groupId);
+            
+            const tgl = formatTglExcel(groupItems[0].tanggal);
+            const akunBank = bankMapping[groupItems[0].kasBank] ? bankMapping[groupItems[0].kasBank] : splitAkun(groupItems[0].kasBank);
+            
+            let totalKasbon = 0;
+            let totalBeban = 0;
+            let groupRows = [];
+
+            // Evaluasi setiap item dalam grup tersebut
+            groupItems.forEach(gItem => {
+                const rawNominal = (gItem.kredit !== 0) ? gItem.kredit : gItem.debet;
+                const nominal = Math.abs(rawNominal);
+                
+                const coaTeks = gItem.posBaru ? gItem.posBaru : "(COA BELUM DITENTUKAN)";
+                const akunCOA = splitAkun(coaTeks);
+                const uraian = gItem.uraian || "-";
+
+                if (rawNominal < 0) {
+                    // Kasbon Minus -> KREDIT (Uang Muka kembali)
+                    groupRows.push([tgl, uraian, akunCOA.kode, akunCOA.nama, "KREDIT", 0, nominal]);
+                    totalKasbon += nominal;
+                } else {
+                    // Belanja Positif -> DEBIT (Beban bertambah)
+                    groupRows.push([tgl, uraian, akunCOA.kode, akunCOA.nama, "DEBIT", nominal, 0]);
+                    totalBeban += nominal;
+                }
+            });
+
+            // Hitung Selisih untuk menentukan sisa Kas
+            const selisih = totalKasbon - totalBeban;
+            const ketSelisih = `Penyelesaian Kasbon (${item.groupId})`;
+
+            if (selisih > 0) {
+                // Sisa Kembalian Uang Fisik -> DEBIT Kas
+                groupRows.push([tgl, ketSelisih, akunBank.kode, akunBank.nama, "DEBIT", Math.abs(selisih), 0]);
+            } else if (selisih < 0) {
+                // Reimburse (Kasir nombok/keluar uang lagi) -> KREDIT Kas
+                groupRows.push([tgl, ketSelisih, akunBank.kode, akunBank.nama, "KREDIT", 0, Math.abs(selisih)]);
+            }
+
+            // Susun Rapi: Pastikan baris DEBIT selalu ada di atas KREDIT di dalam Excel
+            groupRows.sort((a, b) => {
+                if (a[4] === "DEBIT" && b[4] === "KREDIT") return -1;
+                if (a[4] === "KREDIT" && b[4] === "DEBIT") return 1;
+                return 0;
+            });
+
+            // Masukkan ke lembar kerja utama
+            groupRows.forEach(row => ws_data.push(row));
         }
     });
 
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
 
     ws['!cols'] = [
-        { wch: 12 }, { wch: 55 }, { wch: 15 }, { wch: 35 }, { wch: 10 }, { wch: 15 }, { wch: 15 }
+        { wch: 12 }, // A: Tanggal
+        { wch: 55 }, // B: Uraian Jurnal
+        { wch: 15 }, // C: Kode Akun
+        { wch: 35 }, // D: Nama Akun
+        { wch: 10 }, // E: Posisi
+        { wch: 15 }, // F: Debit
+        { wch: 15 }  // G: Kredit
     ];
 
     const wb = XLSX.utils.book_new();

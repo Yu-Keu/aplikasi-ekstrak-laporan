@@ -3,417 +3,170 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PENGELUARAN</title>
+    <title>PENGELUARAN (Dengan Grouping LPJ & Payload)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Alpine.js CDN -->
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
-    ></script>
-    <!-- Google Fonts -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-      [x-cloak] {
-        display: none !important;
-      }
-
-      body {
-        font-family: "Inter", sans-serif;
-      }
+      [x-cloak] { display: none !important; }
+      body { font-family: "Inter", sans-serif; }
     </style>
   </head>
 
-  <body
-    class="bg-slate-50 text-slate-800 min-h-screen flex flex-col relative"
-    x-data="appData()"
-    x-init="initApp()"
-  >
-    <!-- Toast Notification Melayang -->
-    <div
-      x-show="toast.show"
-      x-transition:enter="transition ease-out duration-300"
-      x-transition:enter-start="opacity-0 translate-y-4 scale-95"
-      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-      x-transition:leave="transition ease-in duration-200"
-      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-      x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-      class="fixed bottom-5 right-5 z-50 bg-slate-900/90 text-white text-xs px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md border border-slate-700/50 flex items-center space-x-2.5"
-      x-cloak
-    >
-      <div class="p-1 bg-emerald-500/20 text-emerald-400 rounded-full">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
-        </svg>
-      </div>
+  <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col relative" x-data="appData()" x-init="initApp()">
+    
+    <!-- Toast Notification -->
+    <div x-show="toast.show" x-transition class="fixed bottom-5 right-5 z-50 bg-slate-900/90 text-white text-xs px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md border border-slate-700/50 flex items-center space-x-2.5" x-cloak>
+      <div class="p-1 bg-emerald-500/20 text-emerald-400 rounded-full">✓</div>
       <span x-text="toast.message" class="font-medium"></span>
     </div>
 
-    <!-- Loading State Overlay -->
-    <div
-      x-show="isLoading"
-      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white"
-      x-cloak
-    >
-      <div
-        class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 text-slate-800 flex flex-col items-center space-y-4 max-w-xs text-center"
-      >
-        <div
-          class="w-12 h-12 border-4 border-emerald-200 border-t-emerald-700 rounded-full animate-spin"
-        ></div>
-        <div>
-          <p class="font-bold text-sm text-slate-800">
-            Memproses File Excel...
-          </p>
-          <p class="text-xs text-slate-500 mt-1">
-            Sedang menormalisasi Kas/Bank, COA, dan nominal.
-          </p>
-        </div>
+    <!-- Floating Action Button: IKAT TRANSAKSI -->
+    <div x-show="selectedCount > 1" x-transition class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 bg-slate-800 text-white px-5 py-3 rounded-full shadow-2xl border border-slate-600 flex items-center space-x-4" x-cloak>
+      <div class="font-bold text-sm bg-slate-700 px-3 py-1 rounded-full text-emerald-300">
+        <span x-text="selectedCount"></span> Baris Terpilih
+      </div>
+      <button @click="calculateGroup()" class="bg-sky-500 hover:bg-sky-400 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow transition flex items-center space-x-2">
+        <span>🔗 Ikat Menjadi 1 LPJ (Jurnal Majemuk)</span>
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div x-show="isLoading" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center text-white" x-cloak>
+      <div class="bg-white p-6 rounded-2xl shadow-xl text-slate-800 text-center">
+        <div class="w-10 h-10 border-4 border-emerald-200 border-t-emerald-700 rounded-full animate-spin mx-auto mb-3"></div>
+        <p class="font-bold text-sm">Memproses File Excel...</p>
       </div>
     </div>
 
-    <!-- Header Application -->
-    <header
-      class="bg-emerald-900 text-white shadow-lg border-b border-emerald-950 sticky top-0 z-40"
-    >
-      <div
-        class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4"
-      >
-        <!-- Emblem Logo -->
+    <!-- Header -->
+    <header class="bg-emerald-900 text-white shadow-lg border-b border-emerald-950 sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4">
         <div class="flex items-center space-x-3">
-          <div
-            class="w-11 h-11 bg-emerald-950 rounded-xl border border-emerald-600 flex items-center justify-center p-1 shadow-md relative overflow-hidden"
-          >
-            <div
-              class="absolute inset-0 bg-red-950/40 flex items-center justify-center"
-            >
-              <svg
-                class="w-9 h-9 text-emerald-500 opacity-30 rotate-45"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <rect x="4" y="4" width="16" height="16" rx="2" />
-              </svg>
-            </div>
-            <svg
-              class="w-7 h-7 text-emerald-300 z-10"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M12 2.25L3.75 6.75V17.25L12 21.75L20.25 17.25V6.75L12 2.25ZM12 4.25L18 7.5V15.5L12 18.75L6 15.5V7.5L12 4.25ZM11 8H7V9.5H11V8ZM17 8H13V9.5H17V8ZM11 11H7V12.5H11V11ZM17 11H13V12.5H17V11Z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h1 class="text-base font-bold tracking-tight leading-tight">
-              PENGELUARAN
-            </h1>
-          </div>
+          <h1 class="text-base font-bold tracking-tight">PENGELUARAN</h1>
+          <span class="bg-emerald-800 text-emerald-200 px-2 py-0.5 rounded text-[10px] font-bold">MODE LPJ BINDING</span>
         </div>
-
-        <!-- Header Buttons -->
-        <div class="flex items-center space-x-3">
-           <a
-            href="pemasukan.html"
-            class="text-xs bg-emerald-800 hover:bg-emerald-700 text-emerald-100 border border-emerald-600 px-3.5 py-2 rounded-xl font-medium transition flex items-center space-x-1.5 shadow-sm"
-          >
-            <span>DAFTAR PEMASUKAN</span>
-        </a>
+        <div>
+           <a href="pemasukan.html" class="text-xs bg-emerald-800 hover:bg-emerald-700 text-emerald-100 border border-emerald-600 px-3.5 py-2 rounded-xl font-medium transition">
+            DAFTAR PEMASUKAN
+          </a>
         </div>
       </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+    <!-- Main Content -->
+    <main class="flex-grow max-w-[95rem] w-full mx-auto px-4 py-6 space-y-6">
       <!-- Upload View -->
-      <div
-        x-show="!isUploaded"
-        class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4"
-      >
-        <div
-          @click="$refs.fileInput.click()"
-          @dragover.prevent="dragover = true"
-          @dragleave.prevent="dragover = false"
-          @drop.prevent="handleDrop($event)"
-          :class="dragover ? 'border-emerald-600 bg-emerald-50/40' : 'border-slate-300 bg-slate-50/50'"
-          class="border-2 border-dashed transition-all duration-200 rounded-2xl p-12 cursor-pointer hover:bg-emerald-50/20 group"
-        >
-          <input
-            type="file"
-            x-ref="fileInput"
-            @change="handleFileSelect($event)"
-            accept=".xlsx, .xls"
-            class="hidden"
-          />
-          <div class="flex flex-col items-center space-y-3">
-            <div
-              class="p-4 bg-emerald-100 group-hover:bg-emerald-600 text-emerald-800 group-hover:text-white rounded-full transition-colors duration-200"
-            >
-              <svg
-                class="w-10 h-10"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                ></path>
-              </svg>
-            </div>
-            <div>
-              <p
-                class="text-base font-bold text-slate-700 group-hover:text-emerald-900"
-              >
-                Upload File Excel Jurnal
-              </p>
-              <p class="text-xs text-slate-500 mt-1">
-                Membaca Sheet 'Jurnal' &bull; Tampilan Interaktif Dashboard
-              </p>
-            </div>
-          </div>
+      <div x-show="!isUploaded" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center max-w-4xl mx-auto mt-10">
+        <div @click="$refs.fileInput.click()" class="border-2 border-dashed border-slate-300 bg-slate-50 rounded-2xl p-12 cursor-pointer hover:bg-emerald-50 transition-colors">
+          <input type="file" x-ref="fileInput" @change="handleFileSelect($event)" accept=".xlsx, .xls" class="hidden" />
+          <p class="text-lg font-bold text-slate-700">Upload File Excel Jurnal Pengeluaran</p>
+          <p class="text-xs text-slate-500 mt-1">Sistem kebal terhadap angka Minus (Koreksi Kasbon)</p>
         </div>
       </div>
 
-      <!-- Dashboard Interaktif -->
+      <!-- Dashboard -->
       <div x-show="isUploaded" class="space-y-6" x-cloak>
-        <!-- Toolbar & Filter -->
-        <div
-          class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4"
-        >
-          <div class="flex flex-wrap items-center gap-3">
-            <!-- Select Filter Tanggal -->
-            <div class="flex items-center space-x-2">
-              <label
-                for="date-select"
-                class="text-xs font-bold text-slate-700 flex items-center space-x-1"
-              >
-                <svg
-                  class="w-4 h-4 text-emerald-700"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  ></path>
-                </svg>
-                <span>Tanggal:</span>
-              </label>
-              <select
-                id="date-select"
-                x-model="selectedDate"
-                class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-semibold bg-slate-50 focus:bg-white focus:outline-emerald-600 text-slate-800 shadow-sm cursor-pointer min-w-[150px]"
-              >
-                <option value="ALL">-- Semua Tanggal --</option>
-                <template x-for="d in availableDates" :key="d">
-                  <option :value="d" x-text="d"></option>
-                </template>
-              </select>
-            </div>
-
-            <!-- Select Filter Kas/Bank -->
-            <div class="flex items-center space-x-2">
-              <label
-                for="kasbank-select"
-                class="text-xs font-bold text-slate-700 flex items-center space-x-1"
-              >
-                <svg
-                  class="w-4 h-4 text-emerald-700"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                  ></path>
-                </svg>
-                <span>Kas/Bank:</span>
-              </label>
-              <select
-                id="kasbank-select"
-                x-model="selectedKasBank"
-                class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-semibold bg-slate-50 focus:bg-white focus:outline-emerald-600 text-slate-800 shadow-sm cursor-pointer min-w-[160px]"
-              >
-                <option value="ALL">-- Semua Kas/Bank --</option>
-                <template x-for="kb in availableKasBanks" :key="kb">
-                  <option :value="kb" x-text="kb"></option>
-                </template>
-              </select>
-            </div>
+        <!-- Toolbar -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <select x-model="selectedDate" class="border rounded-xl px-3 py-1.5 text-xs focus:outline-emerald-600 font-semibold bg-slate-50 min-w-[150px]">
+              <option value="ALL">-- Semua Tanggal --</option>
+              <template x-for="d in availableDates" :key="d">
+                <option :value="d" x-text="d"></option>
+              </template>
+            </select>
+            <select x-model="selectedKasBank" class="border rounded-xl px-3 py-1.5 text-xs focus:outline-emerald-600 font-semibold bg-slate-50 min-w-[150px]">
+              <option value="ALL">-- Semua Kas/Bank --</option>
+              <template x-for="kb in availableKasBanks" :key="kb">
+                <option :value="kb" x-text="kb"></option>
+              </template>
+            </select>
           </div>
-
-          <!-- Search Bar & Reset -->
           <div class="flex items-center space-x-3">
-            <input
-              type="text"
-              x-model="searchQuery"
-              placeholder="Cari uraian, nama, pos..."
-              class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs w-56 focus:outline-emerald-600"
-            />
-            <button
-              @click="exportToExcel()"
-              class="text-xs text-emerald-700 hover:text-white border border-emerald-500 hover:bg-emerald-600 px-3 py-1.5 rounded-xl font-medium transition shadow-sm flex items-center space-x-1"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              <span>Download Excel</span>
+            <input type="text" x-model="searchQuery" placeholder="Cari uraian, nama..." class="border rounded-xl px-3 py-1.5 text-xs w-56 focus:outline-emerald-600" />
+            <button @click="exportToExcel()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-xl font-bold transition shadow-sm flex items-center space-x-1">
+              <span>📥 Download Excel Jurnal</span>
             </button>
-            <button
-              @click="resetFile()"
-              class="text-xs text-rose-600 hover:text-rose-800 border border-rose-200 hover:bg-rose-50 px-3 py-1.5 rounded-xl font-medium transition"
-            >
-              Ganti File
-            </button>
+            <button @click="resetFile()" class="text-xs text-rose-600 border border-rose-200 px-3 py-1.5 rounded-xl font-medium hover:bg-rose-50">Ganti File</button>
           </div>
         </div>
 
-        <!-- Tabel Transaksi Utama -->
-        <div
-          class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
-        >
-          <div
-            class="bg-slate-100 px-5 py-3 border-b border-slate-200 flex justify-between items-center text-xs font-bold text-slate-700"
-          >
-            <span x-text="getTableTitle()"></span>
-            <div class="flex items-center space-x-3">
-              <span
-                class="text-xs text-slate-500 font-medium"
-                x-text="'File: ' + uploadedFileName"
-              ></span>
-            </div>
-          </div>
-
+        <!-- Tabel Utama -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-200 text-xs">
               <thead class="bg-slate-50 text-slate-600 font-semibold">
                 <tr>
-                  <!-- Header Checkbox All -->
-                  <th class="px-3 py-2.5 text-center w-10">
-                    <input
-                      type="checkbox"
-                      @change="toggleSelectAll($event)"
-                      class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
-                      title="Tandai Semua"
-                    />
-                  </th>
-                  <th class="px-3.5 py-2.5 text-left">TANGGAL</th>
-                  <th
-                    class="px-3.5 py-2.5 text-left font-bold text-emerald-900 bg-emerald-50/50"
-                  >
-                    KAS / BANK
-                  </th>
-                  <th class="px-3.5 py-2.5 text-left">KODE</th>
-                  <th class="px-3.5 py-2.5 text-left text-rose-600">
-                    POS LAMA
-                  </th>
-                  <th
-                    class="px-3.5 py-2.5 text-left text-emerald-800 bg-emerald-50/80"
-                  >
-                    POS BARU (COA RESMI)
-                  </th>
-                  <th class="px-3.5 py-2.5 text-left">URAIAN</th>
-                  <th class="px-3.5 py-2.5 text-right font-bold text-slate-800">
-                    KREDIT
-                  </th>
-                  <th class="px-3.5 py-2.5 text-center">AKSI</th>
+                  <th class="px-3 py-3 text-center w-10">Tandai</th>
+                  <th class="px-3 py-3 text-left">TANGGAL</th>
+                  <th class="px-3 py-3 text-left">KAS / BANK</th>
+                  <th class="px-3 py-3 text-left">NAMA</th> <!-- KOLOM NAMA -->
+                  <th class="px-3 py-3 text-left text-emerald-800">POS BARU (COA)</th>
+                  <th class="px-3 py-3 text-left max-w-sm">URAIAN</th>
+                  <th class="px-3 py-3 text-right">DEBIT</th>
+                  <th class="px-3 py-3 text-right">KREDIT</th>
+                  <th class="px-3 py-3 text-center">STATUS IKATAN</th>
+                  <th class="px-3 py-3 text-center">AKSI</th> <!-- KOLOM PAYLOAD -->
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-slate-200">
                 <template x-for="item in filteredData" :key="item.id">
-                  <tr
-                    :class="item.selected ? 'bg-amber-100/80 hover:bg-amber-100 transition-colors' : 'hover:bg-slate-50 transition-colors'"
-                  >
-                    <!-- Checkbox Penanda Baris (Kuning) -->
-                    <td class="px-3 py-2.5 text-center">
-                      <input
-                        type="checkbox"
-                        x-model="item.selected"
-                        class="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
-                      />
+                  <tr :class="{
+                    'bg-sky-50': item.groupId, 
+                    'bg-amber-50': item.selected && !item.groupId, 
+                    'hover:bg-slate-50': !item.groupId
+                  }">
+                    <td class="px-3 py-2 text-center">
+                      <input type="checkbox" x-model="item.selected" x-show="!item.groupId" class="w-4 h-4 cursor-pointer text-sky-600 rounded border-slate-300 focus:ring-sky-500" />
+                      <span x-show="item.groupId" class="text-sky-500 font-bold text-[10px]">🔗</span>
                     </td>
-
-                    <td
-                      class="px-3.5 py-2.5 whitespace-nowrap text-slate-500 font-mono"
-                      x-text="item.tanggal || '-'"
-                    ></td>
-                    <td
-                      class="px-3.5 py-2.5 font-bold text-emerald-900 bg-emerald-50/30 whitespace-nowrap"
-                      x-text="item.kasBank || '-'"
-                    ></td>
-                    <td
-                      class="px-3.5 py-2.5 font-mono text-slate-400"
-                      x-text="item.kodeLama || ''"
-                    ></td>
-                    <td
-                      class="px-3.5 py-2.5 text-slate-600"
-                      x-text="item.posLama || '-'"
-                    ></td>
-
-                    <!-- Pos Baru (Dikosongkan jika Uang Muka Minus / Penerimaan Lain-lain) -->
-                    <td class="px-3.5 py-2.5">
-                      <template x-if="item.posBaru">
-                        <span
-                          class="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded"
-                          x-text="item.posBaru"
-                        ></span>
+                    <td class="px-3 py-2 whitespace-nowrap text-slate-500 font-mono" x-text="item.tanggal"></td>
+                    <td class="px-3 py-2 font-bold text-slate-700 whitespace-nowrap" x-text="item.kasBank"></td>
+                    <!-- Menampilkan Data NAMA -->
+                    <td class="px-3 py-2 text-slate-600 font-medium" x-text="item.nama || '-'"></td>
+                    <td class="px-3 py-2 font-bold text-emerald-800 bg-emerald-50/50" x-text="item.posBaru || '(KOSONG)'"></td>
+                    <td class="px-3 py-2 text-slate-600 max-w-xs" x-text="item.uraian"></td>
+                    
+                    <td class="px-3 py-2 text-right font-mono font-medium" :class="item.debet < 0 ? 'text-rose-600 font-bold' : 'text-slate-800'" x-text="formatRupiah(item.debet)"></td>
+                    <td class="px-3 py-2 text-right font-mono font-medium" :class="item.kredit < 0 ? 'text-rose-600 font-bold' : 'text-slate-800'" x-text="formatRupiah(item.kredit)"></td>
+                    
+                    <td class="px-3 py-2 text-center">
+                      <template x-if="item.groupId">
+                        <div class="flex flex-col items-center gap-1">
+                          <span class="bg-sky-200 text-sky-800 px-2 py-0.5 rounded text-[10px] font-bold" x-text="item.groupId"></span>
+                          <button @click="ungroup(item.groupId)" class="text-[9px] text-rose-500 hover:underline">Lepas Ikatan</button>
+                        </div>
                       </template>
-                      <template x-if="!item.posBaru">
-                        <span class="text-slate-300 italic">(Dikosongkan)</span>
+                      <template x-if="!item.groupId">
+                        <span class="text-slate-300 text-[10px]">Tunggal</span>
                       </template>
                     </td>
 
-                    <td
-                      class="px-3.5 py-2.5 text-slate-600 max-w-xs"
-                      :title="item.uraian"
-                      x-text="item.uraian || '-'"
-                    ></td>
-                    <td
-                      class="px-3.5 py-2.5 text-right font-mono font-medium"
-                      :class="item.kredit < 0 ? 'text-rose-600' : 'text-slate-800'"
-                      x-text="formatRupiah(item.kredit)"
-                    ></td>
-
-                    <!-- Tombol Action (HILANG JIKA DICEKLIS OR UNMATCHED) -->
-                    <td class="px-3.5 py-2.5 text-center">
-                      <template
-                        x-if="item.hasMatch && item.posBaru && !item.selected"
-                      >
+                    <!-- Tombol COPY PAYLOAD -->
+                    <td class="px-3 py-2 text-center">
+                      <template x-if="!item.groupId && !item.selected">
                         <button
                           @click="handleRowAction(item)"
-                          :class="item.copied ? 'bg-emerald-600 text-white' : 'bg-emerald-700 hover:bg-emerald-800 text-white'"
-                          class="px-3 py-1 font-medium text-[11px] rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center min-w-[70px] mx-auto"
+                          :class="item.copied ? 'bg-emerald-600 text-white' : 'bg-slate-700 hover:bg-slate-800 text-white'"
+                          class="px-2 py-1 font-medium text-[10px] rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center min-w-[80px] mx-auto"
                         >
-                          <span x-text="item.copied ? '✓ Copied' : 'Aksi'"></span>
+                          <span x-text="item.copied ? '✓ Copied' : 'Copy Payload'"></span>
                         </button>
                       </template>
-                      <template
-                        x-if="!item.hasMatch || !item.posBaru || item.selected"
-                      >
+                      <template x-if="item.groupId || item.selected">
                         <span class="text-slate-300">-</span>
                       </template>
                     </td>
                   </tr>
                 </template>
-
                 <template x-if="filteredData.length === 0">
                   <tr>
-                    <td colspan="11" class="p-8 text-center text-slate-400">
-                      Tidak ada data transaksi yang cocok dengan filter.
-                    </td>
+                    <td colspan="10" class="p-8 text-center text-slate-400">Tidak ada data transaksi yang cocok dengan filter.</td>
                   </tr>
                 </template>
               </tbody>
@@ -423,143 +176,74 @@
       </div>
     </main>
 
-    <!-- Modal Rules Viewer -->
-    <div
-      x-show="showModal"
-      class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      x-cloak
-    >
-      <div
-        @click.away="showModal = false"
-        class="bg-white rounded-2xl max-w-3xl w-full max-h-[80vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden"
-      >
-        <div
-          class="bg-emerald-900 text-white p-4 flex justify-between items-center"
-        >
-          <h3 class="font-bold text-sm">Daftar Aturan Mapping Pos CONSTANT</h3>
-          <button
-            @click="showModal = false"
-            class="text-emerald-200 hover:text-white font-bold text-lg"
-          >
-            &times;
-          </button>
+    <!-- Modal Kalkulasi LPJ -->
+    <div x-show="showGroupModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak>
+      <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+        <div class="bg-sky-800 text-white p-4">
+          <h3 class="font-bold">Konfirmasi Ikatan LPJ Kasbon</h3>
+          <p class="text-xs text-sky-200 mt-1">Sistem akan menyatukan baris menjadi 1 Jurnal Majemuk</p>
         </div>
-        <div class="p-4 overflow-y-auto text-xs space-y-3">
-          <div class="border rounded-xl overflow-hidden">
-            <table class="min-w-full divide-y divide-slate-200">
-              <thead class="bg-slate-100 font-semibold text-slate-700">
-                <tr>
-                  <th class="p-2.5 text-left">Kata Kunci (Pos Lama + Uraian)</th>
-                  <th class="p-2.5 text-left text-emerald-800">
-                    Target COA Resmi
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 bg-white">
-                <template x-for="(r, idx) in rules" :key="idx">
-                  <tr>
-                    <td
-                      class="p-2.5 font-mono text-slate-700"
-                      x-text="r.keys.join(', ')"
-                    ></td>
-                    <td
-                      class="p-2.5 font-bold text-emerald-800"
-                      x-text="r.coa || '(Dikosongkan)'"
-                    ></td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
+        <div class="p-5 space-y-4">
+          <div class="flex justify-between items-center text-sm border-b pb-2">
+            <span class="text-slate-500">Total Uang Kasbon (-)</span>
+            <span class="font-bold text-rose-600 font-mono" x-text="formatRupiah(groupSummary.totalKasbon)"></span>
           </div>
+          <div class="flex justify-between items-center text-sm border-b pb-2">
+            <span class="text-slate-500">Total Belanja Beban (+)</span>
+            <span class="font-bold text-emerald-600 font-mono" x-text="formatRupiah(groupSummary.totalBeban)"></span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-lg border flex justify-between items-center">
+            <span class="font-bold text-xs" :class="groupSummary.isReimburse ? 'text-amber-600' : 'text-sky-700'" x-text="groupSummary.status"></span>
+            <span class="font-bold text-lg font-mono text-slate-800" x-text="formatRupiah(groupSummary.selisih)"></span>
+          </div>
+          <div class="text-[10px] text-slate-400 text-center italic">Nominal selisih akan otomatis dialokasikan ke Kas/Bank.</div>
         </div>
-        <div class="p-3 bg-slate-50 border-t text-right">
-          <button
-            @click="showModal = false"
-            class="bg-slate-800 text-white text-xs px-4 py-2 rounded-xl font-medium"
-          >
-            Tutup
-          </button>
+        <div class="p-3 bg-slate-100 flex justify-end space-x-2">
+          <button @click="showGroupModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-lg">Batal</button>
+          <button @click="confirmGroup()" class="px-4 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white rounded-lg">Simpan & Ikat Transaksi</button>
         </div>
       </div>
     </div>
 
-    <footer
-      class="bg-slate-100 border-t border-slate-200 py-3 text-center text-xs text-slate-500 mt-auto"
-    >
-      Mahad Ibnu Taimiyah Bogor &copy; 2026 - Reactive Alpine.js Application
-    </footer>
-
-    <!-- MENGAMBIL LOGIKA MAPPING DARI FILE EXTERNAL -->
-    <script src="export_pengeluaran.js"></script>
+    <!-- MENGAMBIL LOGIKA EKSTERNAL -->
+    <script src="export_excel_pengeluaran.js"></script>
     <script src="pengeluaran_mapping.js"></script>
 
-    <!-- Script Component -->
     <script>
       function appData() {
         return {
           isUploaded: false,
           isLoading: false,
-          dragover: false,
-          showModal: false,
-          uploadedFileName: "",
+          showGroupModal: false,
           selectedDate: "ALL",
           selectedKasBank: "ALL",
           searchQuery: "",
-          rules: typeof POS_MAPPING_RULES !== "undefined" ? POS_MAPPING_RULES : [],
           allData: [],
+          groupCounter: 0,
+          groupSummary: { totalKasbon: 0, totalBeban: 0, selisih: 0, status: "", isReimburse: false },
+          toast: { show: false, message: "", timeout: null },
 
-          // State Toast Notification
-          toast: {
-            show: false,
-            message: "",
-            timeout: null,
-          },
-
-          initApp() {
-            console.log("Alpine.js Initialized");
-            if (typeof determinePosBaru !== "function") {
-              console.warn("File pengeluaran_mapping.js tidak terdeteksi atau error.");
-            }
-          },
-
+          initApp() { console.log("System Ready"); },
+          
           showNotification(msg) {
-            if (this.toast.timeout) clearTimeout(this.toast.timeout);
+            if(this.toast.timeout) clearTimeout(this.toast.timeout);
             this.toast.message = msg;
             this.toast.show = true;
-            this.toast.timeout = setTimeout(() => {
-              this.toast.show = false;
-            }, 2500);
+            this.toast.timeout = setTimeout(() => this.toast.show = false, 2500);
           },
 
-          handleDrop(e) {
-            this.dragover = false;
-            if (e.dataTransfer.files.length)
-              this.processFile(e.dataTransfer.files[0]);
-          },
-
-          handleFileSelect(e) {
-            if (e.target.files.length) this.processFile(e.target.files[0]);
-          },
-
+          handleFileSelect(e) { if(e.target.files.length) this.processFile(e.target.files[0]); },
+          
           processFile(file) {
-            this.uploadedFileName = file.name;
             this.isLoading = true;
-
             setTimeout(() => {
               const reader = new FileReader();
-
               reader.onload = (e) => {
                 try {
                   const data = new Uint8Array(e.target.result);
                   const workbook = XLSX.read(data, { type: "array" });
-                  const sheetName =
-                    workbook.SheetNames.find(
-                      (s) => s.toLowerCase() === "jurnal",
-                    ) || workbook.SheetNames[0];
-                  const worksheet = workbook.Sheets[sheetName];
-                  const rawRows = XLSX.utils.sheet_to_json(worksheet, {
-                    header: 1,
-                  });
+                  const sheetName = workbook.SheetNames.find(s => s.toLowerCase() === "jurnal") || workbook.SheetNames[0];
+                  const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
 
                   let headerRowIndex = 5;
                   let headerRow = null;
@@ -579,126 +263,60 @@
                     }
                   }
 
-                  const dataRows = rawRows.slice(headerRowIndex + 1);
-                  this.parseJournalRows(dataRows, headerRow);
+                  this.parseJournalRows(rawRows.slice(headerRowIndex + 1), headerRow);
                   this.isUploaded = true;
-                } catch (err) {
-                  alert("Gagal membaca file Excel: " + err.message);
-                } finally {
-                  this.isLoading = false;
-                }
+                } catch (err) { alert("Gagal membaca Excel: " + err.message); } 
+                finally { this.isLoading = false; }
               };
-
               reader.readAsArrayBuffer(file);
             }, 100);
           },
 
           parseJournalRows(rows, headerRow) {
             this.allData = [];
-
-            let idxKode = 0,
-              idxKasBank = 1,
-              idxTanggal = 2,
-              idxPosLama = 3,
-              idxUraian = 4,
-              idxNama = 5,
-              idxDebet = 6,
-              idxKredit = 7;
+            
+            let idxKode = 0, idxKasBank = 1, idxTanggal = 2, idxPosLama = 3, idxUraian = 4, idxNama = 5, idxDebet = 6, idxKredit = 7;
 
             if (headerRow) {
               headerRow.forEach((cell, cellIdx) => {
-                const cStr = String(cell || "")
-                  .toLowerCase()
-                  .trim();
+                const cStr = String(cell || "").toLowerCase().trim();
                 if (cStr.includes("kode")) idxKode = cellIdx;
-                else if (cStr.includes("kas") || cStr.includes("bank"))
-                  idxKasBank = cellIdx;
-                else if (cStr.includes("tanggal") || cStr.includes("tgl"))
-                  idxTanggal = cellIdx;
-                else if (cStr.includes("rekening") || cStr.includes("pos"))
-                  idxPosLama = cellIdx;
-                else if (cStr.includes("uraian") || cStr.includes("keterangan"))
-                  idxUraian = cellIdx;
+                else if (cStr.includes("kas") || cStr.includes("bank")) idxKasBank = cellIdx;
+                else if (cStr.includes("tanggal") || cStr.includes("tgl")) idxTanggal = cellIdx;
+                else if (cStr.includes("rekening") || cStr.includes("pos")) idxPosLama = cellIdx;
+                else if (cStr.includes("uraian") || cStr.includes("keterangan")) idxUraian = cellIdx;
                 else if (cStr === "nama") idxNama = cellIdx;
-                else if (cStr.includes("debet") || cStr.includes("debit"))
-                  idxDebet = cellIdx;
+                else if (cStr.includes("debet") || cStr.includes("debit")) idxDebet = cellIdx;
                 else if (cStr.includes("kredit")) idxKredit = cellIdx;
               });
             }
-
+            
             rows.forEach((row, idx) => {
               if (!row || row.length === 0) return;
-
+              
               const kodeLama = String(row[idxKode] || "").trim();
               const rawKasBank = row[idxKasBank];
               const tanggal = this.formatTanggal(row[idxTanggal]);
               const posLama = String(row[idxPosLama] || "").trim();
               const uraian = String(row[idxUraian] || "").trim();
               const nama = String(row[idxNama] || "").trim();
-
+              
               const debet = this.parseIndonesianNumber(row[idxDebet]);
               const kredit = this.parseIndonesianNumber(row[idxKredit]);
 
-              if (
-                !tanggal &&
-                !posLama &&
-                !uraian &&
-                debet === 0 &&
-                kredit === 0
-              )
-                return;
+              if (!tanggal && debet === 0 && kredit === 0) return;
+              if (kredit === 0 && debet === 0) return; 
 
               const kasBank = this.normalizeKasBank(rawKasBank, row);
-
-              const isUangMuka =
-                posLama.toLowerCase().includes("uang muka") ||
-                posLama.toLowerCase().includes("kas bon") ||
-                ["B115", "B24"].includes(kodeLama.toUpperCase());
-              const isNominalMinus = debet < 0 || kredit < 0;
-
-              const isPenerimaanLain =
-                posLama.toLowerCase().includes("penerimaan lain") ||
-                kodeLama.toUpperCase() === "A28";
-
+              
               let posBaru = "";
-              let hasMatch = false;
-
-              if (isPenerimaanLain) {
-                posBaru = "";
-                hasMatch = false;
-              } else if (isUangMuka && isNominalMinus) {
-                posBaru = "";
-                hasMatch = false;
-              } else if (typeof determinePosBaru === "function") {
-                posBaru = determinePosBaru(
-                  kasBank,
-                  posLama,
-                  uraian,
-                  debet,
-                  kredit,
-                  nama,
-                );
-                hasMatch = posBaru !== "" && posBaru !== posLama;
-              } else {
-                console.warn("File pengeluaran_mapping.js tidak terdeteksi atau error.");
-                posBaru = posLama;
-                hasMatch = false;
+              if (typeof determinePosBaru === "function") {
+                posBaru = determinePosBaru(kasBank, posLama, uraian, debet, kredit, nama);
               }
 
               this.allData.push({
-                id: idx,
-                tanggal,
-                kasBank,
-                kodeLama,
-                posLama,
-                posBaru,
-                uraian,
-                nama,
-                debet,
-                kredit,
-                hasMatch,
-                selected: false,
-                copied: false, // Flag tersalin per baris
+                id: idx, tanggal, kasBank, kodeLama, posLama, posBaru, uraian, nama, debet, kredit,
+                selected: false, groupId: null, copied: false
               });
             });
           },
@@ -714,197 +332,140 @@
 
             if (row && Array.isArray(row)) {
               for (let cell of row) {
-                let c = String(cell || "")
-                  .trim()
-                  .toLowerCase();
+                let c = String(cell || "").trim().toLowerCase();
                 if (c.includes("bsi")) return "Bank BSI";
                 if (c.includes("muamalat")) return "Bank Muamalat";
-                if (c === "kas besar" || c.includes("kas besar"))
-                  return "Kas Besar";
-                if (c === "kas kecil" || c.includes("kas kecil"))
-                  return "Kas Kecil";
+                if (c === "kas besar" || c.includes("kas besar")) return "Kas Besar";
+                if (c === "kas kecil" || c.includes("kas kecil")) return "Kas Kecil";
               }
             }
-
             return str || "-";
           },
 
-          get availableDates() {
-            const set = new Set();
-            this.allData.forEach((item) => {
-              if (item.tanggal) set.add(item.tanggal);
-            });
-            return Array.from(set).sort();
-          },
-
-          get availableKasBanks() {
-            const set = new Set();
-            this.allData.forEach((item) => {
-              if (item.kasBank && item.kasBank !== "-") set.add(item.kasBank);
-            });
-            return Array.from(set).sort();
-          },
-
           get filteredData() {
-            return this.allData.filter((item) => {
-              const matchDate =
-                this.selectedDate === "ALL" ||
-                item.tanggal === this.selectedDate;
-              const matchKasBank =
-                this.selectedKasBank === "ALL" ||
-                item.kasBank === this.selectedKasBank;
+            return this.allData.filter(item => {
+              const matchDate = this.selectedDate === "ALL" || item.tanggal === this.selectedDate;
+              const matchBank = this.selectedKasBank === "ALL" || item.kasBank === this.selectedKasBank;
               const q = this.searchQuery.toLowerCase();
-              const matchQuery =
-                !q ||
-                item.posLama.toLowerCase().includes(q) ||
-                item.posBaru.toLowerCase().includes(q) ||
-                item.uraian.toLowerCase().includes(q) ||
-                item.nama.toLowerCase().includes(q) ||
-                item.kasBank.toLowerCase().includes(q);
-
-              return matchDate && matchKasBank && matchQuery;
+              const matchQ = !q || item.posLama.toLowerCase().includes(q) || item.uraian.toLowerCase().includes(q) || item.nama.toLowerCase().includes(q);
+              return matchDate && matchBank && matchQ;
             });
           },
 
-          getTableTitle() {
-            let title = "Daftar Transaksi Jurnal";
-            if (this.selectedDate !== "ALL")
-              title += ` &bull; Tgl ${this.selectedDate}`;
-            if (this.selectedKasBank !== "ALL")
-              title += ` &bull; ${this.selectedKasBank}`;
-            return title;
-          },
+          get availableDates() { return Array.from(new Set(this.allData.map(i => i.tanggal).filter(Boolean))).sort(); },
+          get availableKasBanks() { return Array.from(new Set(this.allData.map(i => i.kasBank).filter(Boolean))).sort(); },
+          get selectedCount() { return this.allData.filter(i => i.selected && !i.groupId).length; },
 
-          toggleSelectAll(e) {
-            const isChecked = e.target.checked;
-            this.filteredData.forEach((item) => {
-              item.selected = isChecked;
+          // -- FITUR GROUPING BINDING --
+          calculateGroup() {
+            const selected = this.allData.filter(i => i.selected && !i.groupId);
+            let totalKasbon = 0, totalBeban = 0;
+            
+            selected.forEach(item => {
+              let nom = (item.kredit !== 0) ? item.kredit : item.debet;
+              if (nom < 0) totalKasbon += Math.abs(nom); 
+              else totalBeban += Math.abs(nom);          
             });
+
+            let selisih = totalKasbon - totalBeban;
+            this.groupSummary = {
+              totalKasbon, 
+              totalBeban,
+              selisih: Math.abs(selisih),
+              status: selisih >= 0 ? "Sisa Kembalian Uang Fisik (Debit Kas)" : "Nominal Kurang / Reimburse (Kredit Kas)",
+              isReimburse: selisih < 0
+            };
+            this.showGroupModal = true;
           },
 
-          resetFile() {
-            this.isUploaded = false;
-            this.uploadedFileName = "";
-            this.allData = [];
-            this.selectedDate = "ALL";
-            this.selectedKasBank = "ALL";
-            this.searchQuery = "";
+          confirmGroup() {
+            this.groupCounter++;
+            const newGroupId = "LPJ-" + String(this.groupCounter).padStart(3, '0');
+            this.allData.forEach(item => {
+              if(item.selected && !item.groupId) {
+                item.groupId = newGroupId;
+                item.selected = false;
+              }
+            });
+            this.showGroupModal = false;
+            this.showNotification(`Transaksi terikat dengan ID ${newGroupId}`);
           },
 
+          ungroup(gId) {
+            this.allData.forEach(item => { if(item.groupId === gId) item.groupId = null; });
+            this.showNotification(`Ikatan ${gId} dilepas.`);
+          },
+
+          // -- FITUR EXPORT & PAYLOAD --
           exportToExcel() {
             if (typeof downloadExcelJurnalPengeluaran === "function") {
               downloadExcelJurnalPengeluaran(this.filteredData);
-              this.showNotification("Excel Pengeluaran sedang diunduh...");
-            } else {
-              alert("Gagal mengunduh! File export_excel_pengeluaran.js tidak ditemukan.");
+              this.showNotification("Excel Jurnal Pengeluaran siap diunduh.");
             }
           },
 
           handleRowAction(item) {
-            // 1. Format Date
             let tglFormat = item.tanggal || "";
             if (tglFormat.includes("-")) {
               const parts = tglFormat.split("-");
-              if (parts.length === 3)
-                tglFormat = `${parts[2]}/${parts[1]}/${parts[0]}`;
+              if (parts.length === 3) tglFormat = `${parts[2]}/${parts[1]}/${parts[0]}`;
             }
 
-            // 2. Format Keterangan
             let keterangan = item.uraian || "";
-
-            // 3. Clean Bank Name (removes "Bank " / "bank ")
-            let bankName = item.kasBank || "";
-            bankName = bankName.replace(/bank\s+/gi, "").trim();
-
+            let bankName = (item.kasBank || "").replace(/bank\s+/gi, "").trim();
             let posName = item.posBaru || "";
-            let bankType = "DEBIT";
-            let posType = "KREDIT";
-            let amount = 0;
+            
+            // Evaluasi Nominal (Berdasarkan debet atau kredit)
+            let rawNominal = (item.kredit !== 0) ? item.kredit : item.debet;
+            let isMinus = rawNominal < 0;
+            let amount = Math.abs(rawNominal);
 
-            if (item.debet > 0) {
-              bankType = "DEBIT";
-              posType = "KREDIT";
-              amount = item.debet;
-            } else if (item.kredit > 0) {
-              bankType = "KREDIT";
-              posType = "DEBIT";
-              amount = item.kredit;
+            let bankType = "KREDIT"; // Pengeluaran default Bank Keluar (Kredit)
+            let posType = "DEBIT";   // Pengeluaran default Beban Bertambah (Debit)
+            
+            // Tukar posisi jika nominal minus (Koreksi)
+            if (isMinus) {
+                bankType = "DEBIT";
+                posType = "KREDIT";
             }
 
             const ahkPayload = `${tglFormat}|${keterangan}|${bankName}|${bankType}|${posName}|${posType}|${amount}`;
 
-            navigator.clipboard
-              .writeText(ahkPayload)
-              .then(() => {
-                // Tanda visual pada tombol
+            navigator.clipboard.writeText(ahkPayload).then(() => {
                 item.copied = true;
-                setTimeout(() => {
-                  item.copied = false;
-                }, 2000);
-
-                // Tampilkan notifikasi melayang
+                setTimeout(() => { item.copied = false; }, 2000);
                 this.showNotification("AHK Payload berhasil disalin ke clipboard!");
-              })
-              .catch((err) => {
+            }).catch((err) => {
                 this.showNotification("Gagal menyalin data.");
-              });
+            });
           },
+
+          resetFile() { this.isUploaded = false; this.allData = []; this.groupCounter = 0; },
 
           parseIndonesianNumber(val) {
             if (typeof val === "number") return isNaN(val) ? 0 : val;
             if (!val) return 0;
             let str = String(val).trim();
-
-            if (
-              str === "-" ||
-              str === "Rp -" ||
-              str === "" ||
-              str === "Rp-" ||
-              str === "Rp. -"
-            )
-              return 0;
-
-            let isNegative = false;
-            if (str.startsWith("-") || str.endsWith("-")) isNegative = true;
-            if (str.startsWith("(") && str.endsWith(")")) {
-              isNegative = true;
-              str = str.slice(1, -1);
-            }
-
-            str = str.replace(/Rp|\s/gi, "").trim();
-
-            if (str.includes(",")) {
-              str = str.replace(/\./g, "").replace(",", ".");
-            } else {
-              str = str.replace(/\./g, "");
-            }
-
-            const clean = str.replace(/[^0-9.-]/g, "");
-            let num = parseFloat(clean) || 0;
+            if(str === "-" || str === "") return 0;
+            let isNegative = str.startsWith("-") || (str.startsWith("(") && str.endsWith(")"));
+            str = str.replace(/Rp|\s/gi, "").replace(/[^0-9.-]/g, "");
+            let num = parseFloat(str) || 0;
             return isNegative ? -Math.abs(num) : num;
           },
 
           formatRupiah(num) {
-            if (num === 0 || isNaN(num) || num === undefined) return "-";
-            const formatted = new Intl.NumberFormat("id-ID").format(
-              Math.abs(num),
-            );
-            return num < 0 ? `(${formatted})` : `Rp ${formatted}`;
+            if (num === 0 || !num) return "-";
+            const f = new Intl.NumberFormat("id-ID").format(Math.abs(num));
+            return num < 0 ? `Rp (${f})` : `Rp ${f}`;
           },
-
+          
           formatTanggal(val) {
-            if (!val) return "";
             if (typeof val === "number") {
-              const date = XLSX.SSF.parse_date_code(val);
-              if (date) {
-                const y = date.y;
-                const m = String(date.m).padStart(2, "0");
-                const d = String(date.d).padStart(2, "0");
-                return `${y}-${m}-${d}`;
-              }
+              const d = XLSX.SSF.parse_date_code(val);
+              return `${d.y}-${String(d.m).padStart(2,"0")}-${String(d.d).padStart(2,"0")}`;
             }
-            return String(val);
-          },
+            return String(val||"");
+          }
         };
       }
     </script>
