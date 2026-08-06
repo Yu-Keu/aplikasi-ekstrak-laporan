@@ -235,6 +235,13 @@
               placeholder="Cari uraian, pos, atau COA..."
               class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs w-64 focus:outline-[#113f28]"
             />
+             <button
+              @click="exportToExcel()"
+              class="text-xs text-emerald-700 hover:text-white border border-emerald-500 hover:bg-emerald-600 px-3 py-1.5 rounded-xl font-medium transition shadow-sm flex items-center space-x-1"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Download Excel</span>
+            </button>
             <button
               @click="resetFile()"
               class="text-xs text-rose-600 hover:text-rose-800 border border-rose-200 hover:bg-rose-50 px-3 py-1.5 rounded-xl font-medium transition"
@@ -412,6 +419,7 @@
     </main>
 
     <!-- MENGAMBIL LOGIKA DARI FILE EXTERNAL -->
+     <script src="export_pemasukan.js"></script>
     <script src="coa_mapping.js"></script>
 
     <script>
@@ -904,6 +912,16 @@
             this.selectedCOA = "ALL";
             this.searchQuery = "";
             if (this.$refs.fileInput) this.$refs.fileInput.value = "";
+          },
+          
+          exportToExcel() {
+            if (typeof downloadExcelJurnal === "function") {
+              // Kirim data yang sedang ter-filter/tampil di tabel saja
+              downloadExcelJurnal(this.filteredData); 
+              this.showNotification("Excel sedang diunduh...");
+            } else {
+              alert("Gagal mengunduh! File export_excel.js tidak ditemukan.");
+            }
           },
         };
       }
